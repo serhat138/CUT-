@@ -138,6 +138,13 @@ body{display:flex;flex-direction:column;align-items:center;background:#06000f}
 <div id="game"><canvas id="cv"></canvas><div id="tiltbub"><div id="tiltdot"></div></div><div id="tut"></div></div>
 <div id="ad">GOOGLE ADMOB — BANNER AD</div>
 
+<div class="ov" id="ov-auth">
+  <div class="box" style="max-width:300px">
+    <div id="auth-content"></div>
+    <button class="btn btn-sec" id="auth-close" style="margin-top:8px">✕ Kapat</button>
+  </div>
+</div>
+
 <div class="ov show" id="ov-lang">
   <div class="box">
     <div class="box-ico">✂️</div><div class="box-ttl">CUT!</div>
@@ -496,7 +503,7 @@ function stepBgRopes(){
 }
 function isMenuOpen(){
   // Show animated rope bg whenever any menu overlay (not game overlays) is visible
-  return ['ov-lang','ov-login','ov-main','ov-pause','ov-shop','ov-lb','ov-lvls']
+  return ['ov-lang','ov-login','ov-auth','ov-main','ov-pause','ov-shop','ov-lb','ov-lvls']
     .some(id=>document.getElementById(id)?.classList.contains('show'));
 }
 
@@ -653,6 +660,60 @@ function cloudSave(){
 async function loginWithGoogle(){
   if(!supa) return;
   await supa.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.href}});
+}
+
+async function loginWithFacebook(){
+  if(!supa) return;
+  await supa.auth.signInWithOAuth({provider:'facebook',options:{redirectTo:window.location.href}});
+}
+
+function openAuthMenu(){
+  sndClick();
+  let content=document.getElementById('auth-content');
+  let closeBtn=document.getElementById('auth-close');
+  closeBtn.textContent=lang==='tr'?'✕ Kapat':'✕ Close';
+  closeBtn.onclick=()=>{sndClick();document.getElementById('ov-auth').classList.remove('show');};
+  if(supaUser){
+    // Giriş yapılmış — kullanıcı bilgisi + çıkış
+    content.innerHTML=`
+      <div style="text-align:center;margin-bottom:16px">
+        <div style="font-size:36px;margin-bottom:8px">👤</div>
+        <div style="font-size:14px;font-weight:900;margin-bottom:4px">${userName}</div>
+        <div style="font-size:11px;opacity:.6;margin-bottom:16px">${supaUser.email||''}</div>
+        <div style="font-size:12px;color:#2ecc71;margin-bottom:16px">✅ ${lang==='tr'?'Giriş yapıldı — veriler buluta kaydediliyor':'Signed in — progress synced to cloud'}</div>
+      </div>
+    `;
+    let logoutBtn=document.createElement('button');
+    logoutBtn.className='btn btn-sec';logoutBtn.style='width:100%;font-size:13px';
+    logoutBtn.innerHTML=lang==='tr'?'🚪 Çıkış Yap':'🚪 Sign Out';
+    logoutBtn.onclick=()=>{sndClick();supaSignOut();document.getElementById('ov-auth').classList.remove('show');};
+    content.appendChild(logoutBtn);
+  } else {
+    // Giriş yapılmamış
+    content.innerHTML=`
+      <div style="text-align:center;margin-bottom:16px">
+        <div style="font-size:36px;margin-bottom:8px">☁️</div>
+        <div style="font-size:14px;font-weight:900;margin-bottom:4px">${lang==='tr'?'Giriş Yap':'Sign In'}</div>
+        <div style="font-size:11px;opacity:.7;margin-bottom:16px">${lang==='tr'?'Telefon değişirse verilerini kurtar!':'Save your progress across devices!'}</div>
+      </div>
+    `;
+    let gBtn=document.createElement('button');
+    gBtn.className='btn btn-gg';gBtn.style='width:100%;margin-bottom:8px;font-size:13px';
+    gBtn.innerHTML='🔴 Google';
+    gBtn.onclick=()=>{sndClick();loginWithGoogle();};
+    let fbBtn=document.createElement('button');
+    fbBtn.className='btn btn-fb';fbBtn.style='width:100%;margin-bottom:8px;font-size:13px';
+    fbBtn.innerHTML='📘 Facebook';
+    fbBtn.onclick=()=>{sndClick();loginWithFacebook();};
+    let guestBtn=document.createElement('button');
+    guestBtn.className='btn btn-sec';guestBtn.style='width:100%;font-size:12px';
+    guestBtn.innerHTML='👻 '+(lang==='tr'?'Misafir olarak devam et':'Continue as Guest');
+    guestBtn.onclick=()=>{sndClick();document.getElementById('ov-auth').classList.remove('show');};
+    content.appendChild(gBtn);
+    content.appendChild(fbBtn);
+    content.appendChild(guestBtn);
+  }
+  document.getElementById('ov-auth').classList.add('show');
 }
 
 async function supaSignOut(){
@@ -2844,12 +2905,12 @@ function showStart(){
   let authBtn=document.createElement('button');
   authBtn.className='btn btn-sec';authBtn.style='font-size:11px;margin-bottom:8px';
   if(supaUser){
-    authBtn.innerHTML='🚪 '+(lang==='tr'?'Çıkış: ':'Sign out: ')+userName;
-    authBtn.onclick=()=>{sndClick();supaSignOut();};
+    authBtn.innerHTML='✅ '+(lang==='tr'?'Giriş yapıldı: ':'Signed in: ')+userName+' →';
+    authBtn.style.color='#2ecc71';authBtn.style.borderColor='#2ecc71';
   } else {
-    authBtn.innerHTML='🔴 '+(lang==='tr'?'Google ile Giriş Yap':'Sign in with Google');
-    authBtn.onclick=()=>{sndClick();loginWithGoogle();};
+    authBtn.innerHTML='👤 '+(lang==='tr'?'Giriş Yap / Kayıt Ol':'Sign In / Register');
   }
+  authBtn.onclick=()=>openAuthMenu();
   bc.appendChild(authBtn);
 
   // 5. Alt ikonlar: Sıralama + Ayarlar
