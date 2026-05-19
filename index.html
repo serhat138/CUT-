@@ -583,26 +583,28 @@ function initSupabase(){
     supa=window.supabase.createClient(SUPA_URL,SUPA_KEY);
     supa.auth.getSession().then(({data})=>{
       if(data&&data.session){
+        // Zaten giris yapilmis — login ekranini atla
         supaUser=data.session.user;
         cloudSyncEnabled=true;
         userName=supaUser.user_metadata?.full_name||supaUser.email||'Player';
-        // Zaten giris yapilmis — login ekranini atla, direkt menu ac
+        document.getElementById('ov-lang').classList.remove('show');
         document.getElementById('ov-login').classList.remove('show');
         loadCloudSave().then(()=>showStart());
       }
     });
     supa.auth.onAuthStateChange((event,session)=>{
-      // Sadece yeni giris yapildiginda cagir (sayfa yenilemede degil)
       if(event==='SIGNED_IN'&&session&&!supaUser){
         supaUser=session.user;
         cloudSyncEnabled=true;
         userName=supaUser.user_metadata?.full_name||supaUser.email||'Player';
         loadCloudSave().then(()=>{
+          document.getElementById('ov-lang').classList.remove('show');
           document.getElementById('ov-login').classList.remove('show');
           showStart();
         });
       } else if(event==='SIGNED_OUT'){
         supaUser=null;cloudSyncEnabled=false;
+        showLoginScreen();
       }
     });
   }catch(e){console.log('Supabase err:',e);}
