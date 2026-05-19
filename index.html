@@ -19,9 +19,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>CUT!</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap');
+/* System fonts only - no external dependency */
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
-html,body{width:100%;height:100%;overflow:hidden;position:fixed;font-family:'Nunito',sans-serif;color:#fff;user-select:none}
+html,body{width:100%;height:100%;overflow:hidden;position:fixed;font-family:'Trebuchet MS','Segoe UI',system-ui,sans-serif;color:#fff;user-select:none}
 body{display:flex;flex-direction:column;align-items:center;background:#06000f}
 #bgcv{position:fixed;inset:0;z-index:0;pointer-events:none}
 #bar{position:relative;z-index:10;width:100%;max-width:700px;flex-shrink:0;
@@ -143,8 +143,8 @@ body{display:flex;flex-direction:column;align-items:center;background:#06000f}
     <div class="box-ico">✂️</div><div class="box-ttl">CUT!</div>
     <div class="box-sub" style="margin-bottom:16px">Dilinizi seçin / Choose your language</div>
     <div class="lang-row">
-      <button class="btn-lang" onclick="sndClick();initLang('tr')">🇹🇷<br><small style="font-size:10px">Türkçe</small></button>
-      <button class="btn-lang" onclick="sndClick();initLang('en')">🇬🇧<br><small style="font-size:10px">English</small></button>
+      <button class="btn-lang" onclick="sndClick();resumeAudio();if(musicOn)setTimeout(sndIntroMusic,200);initLang('tr')">🇹🇷<br><small style="font-size:10px">Türkçe</small></button>
+      <button class="btn-lang" onclick="sndClick();resumeAudio();if(musicOn)setTimeout(sndIntroMusic,200);initLang('en')">🇬🇧<br><small style="font-size:10px">English</small></button>
     </div>
   </div>
 </div>
@@ -2751,12 +2751,25 @@ function showTutorial(){
 }
 
 function showTutorial2(){
-  // Level 2: teach two-finger rope push
   let tut=document.getElementById('tut');
+  // Adım 1: İki parmak açıklaması
   tut.style.display='block';
-  tut.style.left=(W*.5-60)+'px';tut.style.top=(H*.4)+'px';
-  tut.innerHTML=`<span class="ta" style="font-size:22px">👆👆</span><div class="tt" style="font-size:10px">${lang==='tr'?'2. parmakla ipi it!':'Push rope with 2nd finger!'}</div>`;
-  setTimeout(()=>tut.style.display='none',3500);
+  tut.style.left='50%';tut.style.transform='translateX(-50%)';
+  tut.style.top=(H*.28)+'px';
+  tut.style.width='200px';tut.style.textAlign='center';
+  tut.innerHTML=`<span class="ta" style="font-size:28px">☝️☝️</span><div class="tt" style="font-size:11px;line-height:1.5">${lang==='tr'?'<b>2. parmağını</b> koy<br>ipin üstüne!':'Put your <b>2nd finger</b><br>on the rope!'}</div>`;
+  // Adım 2: İt açıklaması
+  setTimeout(()=>{
+    tut.innerHTML=`<span class="ta" style="font-size:28px">👆➡️</span><div class="tt" style="font-size:11px;line-height:1.5">${lang==='tr'?'Parmağını <b>sürükle</b><br>ipi sağa sola it!':'<b>Drag</b> your finger<br>to push the rope!'}</div>`;
+  },2500);
+  // Adım 3: Neden lazım
+  setTimeout(()=>{
+    tut.innerHTML=`<span class="ta" style="font-size:24px">🎯</span><div class="tt" style="font-size:11px;line-height:1.5">${lang==='tr'?'İpi deliğin<br><b>üstüne getir!</b>':'Guide the rope<br><b>over the hole!</b>'}</div>`;
+  },5000);
+  setTimeout(()=>{
+    tut.style.display='none';
+    tut.style.transform='';tut.style.width='';tut.style.textAlign='';
+  },7500);
 }
 
 // ═══════════════════════════════════════════════════════
@@ -3062,7 +3075,9 @@ function initLang(l){
   lang=l;
   document.getElementById('ov-lang').classList.remove('show');
   applyLang();
-  attachGyro();sizeCanvas();updateStarUI();showLoginScreen();
+  attachGyro();sizeCanvas();updateStarUI();
+  // Login ekranini atla, direkt ana menüye git
+  showStart();
 }
 history.pushState(null,null,location.href);
 window.addEventListener('popstate',()=>history.pushState(null,null,location.href));
