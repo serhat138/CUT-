@@ -1237,6 +1237,7 @@ function buildLevel(lv){
   document.getElementById('vc').textContent='0';
   document.getElementById('tut').style.display='none';
   bgLevel=lv;
+  playLevelMusic(lv);
   document.getElementById('bar-lvl').textContent=T('lvl')+' '+lv;
 
   let rand=rng(lv*9973+12345);
@@ -2078,6 +2079,7 @@ function sndFanfare(){if(!sfxOn)return;
 
 let introMusicNode=null;
 let introMusicPlaying=false;
+let musicPending=false; // autoplay engellendiyse beklet
 
 function sndIntroMusic(){
   if(!musicOn) return;
@@ -2086,11 +2088,27 @@ function sndIntroMusic(){
     if(!audio) return;
     audio.volume=0.7;
     audio.currentTime=0;
-    audio.play().catch(()=>{});
-    introMusicPlaying=true;
-    introMusicNode=audio;
-  }catch(e){}
+    audio.play().then(()=>{
+      introMusicPlaying=true;
+      musicPending=false;
+      introMusicNode=audio;
+    }).catch(()=>{
+      // Autoplay engellendi, ilk dokunuşta tekrar dene
+      musicPending=true;
+      introMusicPlaying=false;
+    });
+  }catch(e){ musicPending=true; }
 }
+
+// İlk kullanıcı etkileşiminde bekleyen müziği başlat
+function _tryResumePendingMusic(){
+  if(musicPending&&musicOn&&!introMusicPlaying){
+    musicPending=false;
+    sndIntroMusic();
+  }
+}
+document.addEventListener('touchstart',_tryResumePendingMusic,{passive:true});
+document.addEventListener('mousedown',_tryResumePendingMusic,{passive:true});
 
 function stopIntroMusic(){
   try{
@@ -2204,9 +2222,25 @@ function getLevelMusicCtx(){
   return levelMusicCtx;
 }
 
-function stopLevelMusic(){}
+function stopLevelMusic(){
+  // İleride ayrı level müzikleri eklenince buraya stop kodu gelecek
+}
 
-function playLevelMusic(lv){}
+function playLevelMusic(lv){
+  if(!musicOn) return;
+  // 1-15. bölümler: intro müziği çal
+  if(lv>=1&&lv<=15){
+    let audio=document.getElementById('intro-music');
+    if(!audio) return;
+    if(!audio.paused) return; // zaten çalıyorsa dokunma
+    audio.volume=0.7;
+    audio.play().then(()=>{
+      introMusicPlaying=true;
+      musicPending=false;
+    }).catch(()=>{ musicPending=true; });
+  }
+  // 16+ bölümler icin ileride muzik eklenecek
+}
 function fxStars(x,y){
   const em=['⭐','✨','🌟','💫','🎉'];
   for(let i=0;i<6;i++)setTimeout(()=>{
