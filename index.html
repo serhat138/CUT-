@@ -710,7 +710,7 @@ function openAuthMenu(){
 async function supaSignOut(){
   if(supa) await supa.auth.signOut();
   cloudSyncEnabled=false;supaUser=null;userName='';
-  showToast(lang==='tr'?'Cikis yapildi':'Signed out');
+  showToast(lang==='tr'?'Çıkış yapıldı':'Signed out');
   showStart();
 }
 
