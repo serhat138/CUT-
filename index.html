@@ -1783,6 +1783,7 @@ function goMenu(){
   hideOv();hidePause();score=0;level=1;tries=MAX_TRIES;levelFailCount=0;
   hardcoreMode=false;
   stopLevelMusic();
+  stopIntroMusic();
   document.getElementById('vs').textContent='0';
   document.getElementById('bar').classList.remove('ingame');
   resetFailState();showStart();
@@ -2847,7 +2848,8 @@ function hideOv(){document.getElementById('ov-main').classList.remove('show');}
 // ═══════════════════════════════════════════════════════
 function showStart(){
   resumeAudio();
-  setTimeout(()=>{if(musicOn&&!introMusicPlaying) sndIntroMusic();},200);
+  stopLevelMusic();
+  if(musicOn&&!introMusicPlaying) setTimeout(sndIntroMusic,300);
   if(!gyroOn) attachGyro();
   document.getElementById('ov-ico').innerHTML='✂️';
   document.getElementById('ov-ttl').textContent=T('startTtl');
