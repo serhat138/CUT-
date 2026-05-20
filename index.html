@@ -138,7 +138,7 @@ body{display:flex;flex-direction:column;align-items:center;background:#06000f}
 <div id="game"><canvas id="cv"></canvas><div id="tiltbub"><div id="tiltdot"></div></div><div id="tut"></div></div>
 <div id="ad">GOOGLE ADMOB — BANNER AD</div>
 
-<div class="ov" id="ov-auth">
+<div class="ov" id="ov-auth" style="z-index:300">
   <div class="box" style="max-width:300px">
     <div id="auth-content"></div>
     <button class="btn btn-sec" id="auth-close" style="margin-top:8px">✕ Kapat</button>
@@ -2903,7 +2903,7 @@ function showStart(){
     let loginBtn=document.createElement('button');
     loginBtn.className='btn btn-sec';loginBtn.style='font-size:12px;margin-bottom:8px';
     loginBtn.innerHTML='👤 '+(lang==='tr'?'Giriş Yap':'Sign In');
-    loginBtn.onclick=()=>openAuthMenu();
+    loginBtn.addEventListener('click',function(){openAuthMenu();});
     bc.appendChild(loginBtn);
   }
 
