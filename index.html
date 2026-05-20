@@ -109,7 +109,6 @@ body{display:flex;flex-direction:column;align-items:center;background:#06000f}
 </style>
 </head>
 <body>
-<audio id="intro-music" loop preload="auto" style="display:none"><source src="intro-music.mp3" type="audio/mpeg"></audio>
 <canvas id="bgcv"></canvas>
 <div id="bar">
   <div style="display:flex;align-items:center;gap:5px">
@@ -2074,49 +2073,79 @@ function sndFanfare(){if(!sfxOn)return;
   });
 }
 
-let introMusicNode=null;
+// ═══════════════════════════════════════════════════════
+// MÜZİK SİSTEMİ — 15 parça rastgele çalar
+// ═══════════════════════════════════════════════════════
+const MUSIC_COUNT=15;
+const MUSIC_FILES=Array.from({length:MUSIC_COUNT},(_,i)=>`m${i+1}.mp3`);
+let musicQueue=[];
+let currentMusicIdx=-1;
+let currentMusicAudio=null;
 let introMusicPlaying=false;
-let musicPending=false; // autoplay engellendiyse beklet
+let introMusicNode=null;
+let musicPending=false;
+
+function _shuffleQueue(){
+  // Fisher-Yates karıştır, son çalandan farklı başlat
+  let arr=[...Array(MUSIC_COUNT).keys()];
+  for(let i=arr.length-1;i>0;i--){
+    let j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  // Son çalan ilk sıraya gelmesin
+  if(arr[0]===currentMusicIdx&&arr.length>1) [arr[0],arr[1]]=[arr[1],arr[0]];
+  musicQueue=arr;
+}
+
+function _playNext(){
+  if(!musicOn) return;
+  if(musicQueue.length===0) _shuffleQueue();
+  currentMusicIdx=musicQueue.shift();
+  let src=MUSIC_FILES[currentMusicIdx];
+  let audio=new Audio(src);
+  audio.volume=0.7;
+  currentMusicAudio=audio;
+  introMusicNode=audio;
+  audio.addEventListener('ended',()=>{
+    introMusicPlaying=false;
+    _playNext();
+  });
+  audio.play().then(()=>{
+    introMusicPlaying=true;
+    musicPending=false;
+  }).catch(()=>{
+    musicPending=true;
+    introMusicPlaying=false;
+  });
+}
 
 function sndIntroMusic(){
   if(!musicOn) return;
-  try{
-    let audio=document.getElementById('intro-music');
-    if(!audio) return;
-    audio.volume=0.7;
-    audio.currentTime=0;
-    audio.play().then(()=>{
-      introMusicPlaying=true;
-      musicPending=false;
-      introMusicNode=audio;
-    }).catch(()=>{
-      // Autoplay engellendi, ilk dokunuşta tekrar dene
-      musicPending=true;
-      introMusicPlaying=false;
-    });
-  }catch(e){ musicPending=true; }
+  if(introMusicPlaying) return;
+  _shuffleQueue();
+  _playNext();
+}
+
+function stopIntroMusic(){
+  if(currentMusicAudio){
+    currentMusicAudio.pause();
+    currentMusicAudio.currentTime=0;
+    currentMusicAudio=null;
+  }
+  introMusicPlaying=false;
+  introMusicNode=null;
+  musicPending=false;
 }
 
 // İlk kullanıcı etkileşiminde bekleyen müziği başlat
 function _tryResumePendingMusic(){
   if(musicPending&&musicOn&&!introMusicPlaying){
     musicPending=false;
-    sndIntroMusic();
+    _playNext();
   }
 }
 document.addEventListener('touchstart',_tryResumePendingMusic,{passive:true});
 document.addEventListener('mousedown',_tryResumePendingMusic,{passive:true});
-
-// ═══════════════════════════════════════════════════════
-
-function stopIntroMusic(){
-  try{
-    let audio=document.getElementById('intro-music');
-    if(audio){audio.pause();audio.currentTime=0;}
-  }catch(e){}
-  introMusicPlaying=false;
-  introMusicNode=null;
-}
 
 // 🎮 Bölüm başlangıç sesi — "hazır ol" hissi
 function sndLevelStart(){if(!sfxOn)return;
@@ -2222,23 +2251,13 @@ function getLevelMusicCtx(){
 }
 
 function stopLevelMusic(){
-  // İleride ayrı level müzikleri eklenince buraya stop kodu gelecek
+  // Müzik sistemi stopIntroMusic ile yönetiliyor
 }
 
 function playLevelMusic(lv){
   if(!musicOn) return;
-  // 1-15. bölümler: intro müziği çal
-  if(lv>=1&&lv<=15){
-    let audio=document.getElementById('intro-music');
-    if(!audio) return;
-    if(!audio.paused) return; // zaten çalıyorsa dokunma
-    audio.volume=0.7;
-    audio.play().then(()=>{
-      introMusicPlaying=true;
-      musicPending=false;
-    }).catch(()=>{ musicPending=true; });
-  }
-  // 16+ bölümler icin ileride muzik eklenecek
+  if(introMusicPlaying) return; // zaten çalıyorsa dokunma
+  sndIntroMusic();
 }
 function fxStars(x,y){
   const em=['⭐','✨','🌟','💫','🎉'];
@@ -2320,12 +2339,7 @@ function showStart(){
 }
 
 function _renderStart(){
-  if(musicOn&&!introMusicPlaying) setTimeout(()=>{
-    let audio=document.getElementById('intro-music');
-    if(!audio) return;
-    audio.volume=0.7;
-    audio.play().then(()=>{introMusicPlaying=true;musicPending=false;})
-  },300);
+  if(musicOn&&!introMusicPlaying) setTimeout(sndIntroMusic,300);
   if(!gyroOn) attachGyro();
   document.getElementById('ov-ico').innerHTML='✂️';
   document.getElementById('ov-ttl').textContent=T('startTtl');
