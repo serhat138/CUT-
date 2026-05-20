@@ -494,7 +494,7 @@ function stepBgRopes(){
 }
 function isMenuOpen(){
   // Show animated rope bg whenever any menu overlay (not game overlays) is visible
-  return ['ov-lang','ov-login','ov-auth','ov-main','ov-pause','ov-shop','ov-lb','ov-lvls']
+  return ['ov-lang','ov-auth','ov-main','ov-pause','ov-shop','ov-lb','ov-lvls']
     .some(id=>document.getElementById(id)?.classList.contains('show'));
 }
 
@@ -587,7 +587,7 @@ function initSupabase(){
         cloudSyncEnabled=true;
         userName=supaUser.user_metadata&&supaUser.user_metadata.full_name?supaUser.user_metadata.full_name:supaUser.email||'Player';
         document.getElementById('ov-lang').classList.remove('show');
-        document.getElementById('ov-login').classList.remove('show');
+        
         loadCloudSave().then(()=>showStart());
       }
     });
@@ -597,7 +597,7 @@ function initSupabase(){
         cloudSyncEnabled=true;
         userName=supaUser.user_metadata&&supaUser.user_metadata.full_name?supaUser.user_metadata.full_name:supaUser.email||'Player';
         document.getElementById('ov-lang').classList.remove('show');
-        document.getElementById('ov-login').classList.remove('show');
+        
         loadCloudSave().then(()=>showStart());
       } else if(event==='SIGNED_OUT'){
         supaUser=null;cloudSyncEnabled=false;
@@ -3089,16 +3089,10 @@ document.getElementById('lvls-close').onclick=()=>{sndClick();document.getElemen
 // ═══════════════════════════════════════════════════════
 // LOGIN
 // ═══════════════════════════════════════════════════════
-function showLoginScreen(){
-  document.getElementById('login-ttl').textContent=T('loginTtl');
-  document.getElementById('login-sub').textContent=T('loginSub');
-  document.getElementById('login-guest-btn').textContent='👻 '+T('guest');
-  // Müziği burada başlatma — user gesture lazım, login butonuna basınca başlar
-  document.getElementById('ov-login').classList.add('show');
-}
-function loginFB(){sndClick();loginWithGoogle();}
+function showLoginScreen(){ showStart(); }
+function loginFB(){sndClick();loginWithFacebook();}
 function loginGG(){sndClick();loginWithGoogle();}
-function loginGuest(){userName=T('guest');resumeAudio();document.getElementById('ov-login').classList.remove('show');showStart();}
+function loginGuest(){userName=T('guest');resumeAudio();showStart();}
 
 // ═══════════════════════════════════════════════════════
 // GYRO / LANG / RESIZE
@@ -3122,9 +3116,6 @@ function applyLang(){
   document.getElementById('shop-close').textContent=T('close');
   document.getElementById('lb-close').textContent=T('close');
   document.getElementById('lvls-close').textContent=T('close');
-  document.getElementById('login-ttl').textContent=T('loginTtl');
-  document.getElementById('login-sub').textContent=T('loginSub');
-  document.getElementById('login-guest-btn').textContent='👻 '+T('guest');
 }
 function initLang(l){
   lang=l;
