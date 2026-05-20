@@ -2849,6 +2849,22 @@ function hideOv(){document.getElementById('ov-main').classList.remove('show');}
 function showStart(){
   resumeAudio();
   stopLevelMusic();
+  // Supabase session kontrolu
+  if(supa&&!supaUser){
+    supa.auth.getSession().then(({data})=>{
+      if(data&&data.session){
+        supaUser=data.session.user;
+        cloudSyncEnabled=true;
+        userName=supaUser.user_metadata&&supaUser.user_metadata.full_name?supaUser.user_metadata.full_name:supaUser.email||'Player';
+      }
+      _renderStart();
+    });
+  } else {
+    _renderStart();
+  }
+}
+
+function _renderStart(){
   if(musicOn&&!introMusicPlaying) setTimeout(sndIntroMusic,300);
   if(!gyroOn) attachGyro();
   document.getElementById('ov-ico').innerHTML='✂️';
