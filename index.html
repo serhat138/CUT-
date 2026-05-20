@@ -2301,10 +2301,10 @@ function sndIntroMusic(){
     }
 
     // ── SEQUENCE (32 bars, ~44sn at 175bpm) ──
-    let totalBars=32;
+    let totalBars=4; // 4 bar schedule, sonra loop
     for(let br=0;br<totalBars;br++){
       let t=t0+br*bar;
-      let phase=br%8; // 8-bar phrase
+      let phase=br%4;
 
       // DRUMS
       // Kick: 4-on-floor from bar 1
@@ -2615,7 +2615,7 @@ function playLevelMusic(lv){
     let b16=beat/4;
     let bar=beat*4;
     let t=ac.currentTime+0.05;
-    let bars=8; // Sadece 8 bar schedule et, sonra yeniden çal — node sayısını azaltır
+    let bars=4; // 4 bar schedule, loop ile devam eder — daha az node
     let dur=bars*bar;
 
     // Scale frequencies from root
@@ -2659,15 +2659,10 @@ function playLevelMusic(lv){
       let g=ac.createGain();g.gain.setValueAtTime(0,tt);g.gain.linearRampToValueAtTime(0.7,tt+0.02);
       g.gain.setValueAtTime(0.7,tt+len*0.75);g.gain.linearRampToValueAtTime(0,tt+len);
       g.connect(comp);
-      // 2 detuned saws (3 yerine)
-      [1,1.006].forEach(det=>{
-        let o=ac.createOscillator();o.type='sawtooth';o.frequency.value=freq*det;
-        let f=ac.createBiquadFilter();f.type='lowpass';f.frequency.value=350;f.Q.value=6;
-        o.connect(f);f.connect(g);o.start(tt);o.stop(tt+len+0.05);
-      });
-      // Sub sine
-      let gs=ac.createGain();gs.gain.setValueAtTime(0.35,tt);gs.gain.exponentialRampToValueAtTime(0.001,tt+len*0.5);gs.connect(comp);
-      let os=ac.createOscillator();os.type='sine';os.frequency.value=freq*0.5;os.connect(gs);os.start(tt);os.stop(tt+len*0.5+0.05);
+      // Tek saw + lowpass filter
+      let o=ac.createOscillator();o.type='sawtooth';o.frequency.value=freq;
+      let f=ac.createBiquadFilter();f.type='lowpass';f.frequency.value=400;f.Q.value=5;
+      o.connect(f);f.connect(g);o.start(tt);o.stop(tt+len+0.05);
     }
 
     // ── TRANCE LEAD — supersaw with filter sweep ──
@@ -2676,12 +2671,10 @@ function playLevelMusic(lv){
       let g=ac.createGain();g.gain.setValueAtTime(0,tt);g.gain.linearRampToValueAtTime(vol,tt+0.015);
       g.gain.setValueAtTime(vol,tt+len*0.6);g.gain.linearRampToValueAtTime(0,tt+len);
       g.connect(rv);g.connect(delay);g.connect(bus);
-      // Supersaw: 2 detuned (4 yerine — daha az node)
-      let mg=ac.createGain();mg.gain.value=0.45;
-      [1,1.008].forEach(det=>{
-        let o=ac.createOscillator();o.type='sawtooth';o.frequency.value=freq*det;o.connect(mg);
-        o.start(tt);o.stop(tt+len+0.03);
-      });
+      // Tek saw + filter sweep
+      let mg=ac.createGain();mg.gain.value=0.5;
+      let o=ac.createOscillator();o.type='sawtooth';o.frequency.value=freq;o.connect(mg);
+      o.start(tt);o.stop(tt+len+0.03);
       // Filter sweep — trance karakteri
       let f=ac.createBiquadFilter();f.type='lowpass';f.Q.value=4;
       f.frequency.setValueAtTime(400,tt);f.frequency.exponentialRampToValueAtTime(3000,tt+len*0.5);f.frequency.exponentialRampToValueAtTime(800,tt+len);
