@@ -2860,7 +2860,7 @@ function showStart(){
   let goBtn=document.createElement('button');
   goBtn.className='btn btn-main';goBtn.style='font-size:17px;padding:13px;margin-bottom:14px';
   goBtn.innerHTML=T('go');
-  goBtn.onclick=()=>{sndClick();hideOv();newGame();};
+  goBtn.onclick=()=>{sndClick();document.getElementById('ov-auth').classList.remove('show');hideOv();newGame();};
   bc.appendChild(goBtn);
 
   // 2. Koleksiyon + Bölümler yan yana
@@ -2935,6 +2935,7 @@ function showStart(){
 }
 function newGame(){
   stopIntroMusic();stopLevelMusic();
+  document.getElementById('ov-auth').classList.remove('show');
   score=0;level=1;tries=MAX_TRIES;levelFailCount=0;totalTime=0;totalLevels=0;
   document.getElementById('vs').textContent='0';
   document.getElementById('bar').classList.add('ingame');
