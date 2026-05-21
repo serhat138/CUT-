@@ -2434,6 +2434,8 @@ function _renderStart(){
     sndClick();
     busMode=!busMode;
     busTilt=0;
+    cutting=false;
+    touch0id=null;
     busToggle.style.background=busMode?'#ff6b35':'rgba(255,255,255,.2)';
     busKnob.style.left=busMode?'23px':'3px';
   };
