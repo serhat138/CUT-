@@ -2409,6 +2409,8 @@ function _renderStart(){
   busRow.appendChild(busLbl);
   busRow.appendChild(busToggle);
   bc.appendChild(busRow);
+
+  let row1=document.createElement('div');
   row1.style='display:flex;gap:8px;margin-bottom:8px';
   [{label:T('shop'),cls:'btn-shop',fn:openShop},{label:T('lvls'),cls:'btn-lvls',fn:openLevels}].forEach(b=>{
     let el=document.createElement('button');
