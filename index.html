@@ -911,7 +911,7 @@ class Rope{
         for(let j=i;j<this.segs.length;j++) this.segs[j].alive=false;
         if(this.primary&&this.ball.rope===this){
           this.ball.rope=null;this.ball.falling=true;
-          this.ball.vx=gx*9;this.ball.vy=-0.15;
+          this.ball.vx=busMode?0:gx*9;this.ball.vy=-0.15;
           if(failState==='IDLE') failState='WATCHING';
         }
         return true;
@@ -2309,7 +2309,29 @@ function showTutorial(){
   let tut=document.getElementById('tut');if(!balls.length)return;
   let b=balls[0],h=holes[0];
   tut.style.display='block';
+
+  if(busMode){
+    // Bus modu eğitimi
+    tut.style.left='50%';tut.style.transform='translateX(-50%)';
+    tut.style.top=(H*.18)+'px';
+    tut.style.width='210px';tut.style.textAlign='center';
+    tut.innerHTML=`<span class="ta" style="font-size:28px">👆</span><div class="tt" style="font-size:11px;line-height:1.6">${lang==='tr'?'Parmağını <b>sola/sağa</b> basılı tut<br>top o yöne gitsin!':'Hold finger <b>left/right</b><br>to tilt the ball!'}</div>`;
+    setTimeout(()=>{
+      tut.innerHTML=`<span class="ta" style="font-size:28px">✂️</span><div class="tt" style="font-size:11px;line-height:1.6">${lang==='tr'?'İpin üzerinden <b>sürükle</b><br>ipi kes!':'<b>Swipe</b> across the rope<br>to cut it!'}</div>`;
+    },2800);
+    setTimeout(()=>{
+      tut.innerHTML=`<span class="ta" style="font-size:24px">🎯</span><div class="tt" style="font-size:11px;line-height:1.6">${lang==='tr'?'Top kesilince <b>düz düşer</b><br>deliğin üstünde kes!':'Ball falls <b>straight down</b><br>cut above the hole!'}</div>`;
+    },5600);
+    setTimeout(()=>{
+      tut.style.display='none';
+      tut.style.transform='';tut.style.width='';tut.style.textAlign='';
+    },8400);
+    return;
+  }
+
+  // Normal mod eğitimi
   tut.style.left=(b.x-44)+'px';tut.style.top=(b.y-62)+'px';
+  tut.style.transform='';tut.style.width='';tut.style.textAlign='';
   tut.innerHTML=`<span class="ta">✂️</span><div class="tt">${lang==='tr'?'Sürükle → Kes!':'Drag → Cut!'}</div>`;
   setTimeout(()=>{
     tut.style.left=(h.x-44)+'px';tut.style.top=(h.y-68)+'px';
