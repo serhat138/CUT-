@@ -2133,7 +2133,7 @@ function _playNext(){
   currentMusicIdx=musicQueue.shift();
   let src=MUSIC_FILES[currentMusicIdx];
   let audio=new Audio(src);
-  audio.volume=0.7;
+  audio.volume=0.5;
   currentMusicAudio=audio;
   introMusicNode=audio;
   audio.addEventListener('ended',()=>{
