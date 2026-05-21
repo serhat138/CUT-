@@ -2396,7 +2396,7 @@ function showStart(){
 
 function _renderStart(){
   if(musicOn&&!introMusicPlaying) setTimeout(sndIntroMusic,300);
-  if(!gyroOn) attachGyro();
+  if(!gyroOn&&!busMode) attachGyro();
   document.getElementById('ov-ico').innerHTML='✂️';
   document.getElementById('ov-ttl').textContent=T('startTtl');
   document.getElementById('ov-sub').innerHTML=T('startSub');
@@ -2407,7 +2407,13 @@ function _renderStart(){
   let goBtn=document.createElement('button');
   goBtn.className='btn btn-main';goBtn.style='font-size:17px;padding:13px;margin-bottom:14px';
   goBtn.innerHTML=T('go');
-  goBtn.onclick=()=>{sndClick();document.getElementById('ov-auth').classList.remove('show');hideOv();newGame();};
+  goBtn.onclick=()=>{
+    sndClick();
+    if(!gyroOn&&!busMode) attachGyro(); // iOS izni buton tıklamasında iste
+    document.getElementById('ov-auth').classList.remove('show');
+    hideOv();
+    newGame();
+  };
   bc.appendChild(goBtn);
 
   // 🚌 Otobüs Modu toggle
@@ -2648,11 +2654,15 @@ function loginGG(){sndClick();loginWithGoogle();}
 function loginGuest(){userName=T('guest');resumeAudio();showStart();}
 
 function attachGyro(){
-  if(gyroOn) return; // zaten aktif, tekrar bağlama
+  if(gyroOn) return; // zaten aktif
   if(typeof DeviceMotionEvent==='undefined') return;
-  if(typeof DeviceMotionEvent.requestPermission==='function')
-    DeviceMotionEvent.requestPermission().then(s=>{if(s==='granted') startMotion();}).catch(()=>{});
-  else startMotion();
+  if(typeof DeviceMotionEvent.requestPermission==='function'){
+    DeviceMotionEvent.requestPermission().then(s=>{
+      if(s==='granted') startMotion();
+    }).catch(()=>{});
+  } else {
+    startMotion(); // Android veya izin gerektirmeyen tarayıcı
+  }
 }
 function startMotion(){
   if(gyroOn) return; // duplicate listener önle
