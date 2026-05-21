@@ -542,6 +542,7 @@ const HUES=[200,30,120,280,350,55,170,310];
 const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
 let W=300,H=500,gx=0,gy=BASE_GY;
 let rawTX=0,smTX=0,gyroOn=false,deskTilt=0,gyroSign=1;
+let busMode=false,busTilt=0,busTouch=false;
 const isAndroid=/android/i.test(navigator.userAgent);
 
 let ropes=[],balls=[],holes=[],anchors=[],walls=[];
@@ -1768,7 +1769,7 @@ function drawCutLine(){
 
 function frame(){
   if(!paused){
-    let src=gyroOn?rawTX:deskTilt;
+    let src=busMode?busTilt:(gyroOn?rawTX:deskTilt);
     smTX+=(src-smTX)*.1;
     gx=Math.max(-.55,Math.min(.55,smTX*.46));
     let ox=Math.max(-10,Math.min(10,smTX*12));
@@ -1793,17 +1794,45 @@ cv.addEventListener('mouseup',()=>cutting=false);
 cv.addEventListener('mouseleave',()=>cutting=false);
 cv.addEventListener('touchstart',e=>{
   e.preventDefault();
+  if(busMode){
+    if(e.touches.length>=1){
+      let t=e.touches[0];
+      busTilt=((t.clientX/W)-0.5)*2;
+      busTouch=true;
+      // Kesme için başlangıç noktasını da kaydet
+      let p=getPos(t);pp=p;mp=p;touch0id=t.identifier;
+    }
+    if(e.touches.length>=2){let p=getPos(e.touches[1]);applyImpulse(p.x,p.y);sndPush();}
+    return;
+  }
   if(e.touches.length>=1&&touch0id===null){let p=getPos(e.touches[0]);cutting=true;pp=p;mp=p;touch0id=e.touches[0].identifier;}
   if(e.touches.length>=2){let p=getPos(e.touches[1]);applyImpulse(p.x,p.y);sndPush();}
 },{passive:false});
 cv.addEventListener('touchmove',e=>{
   e.preventDefault();
+  if(busMode){
+    if(e.touches.length>=1){
+      let t=e.touches[0];
+      busTilt=((t.clientX/W)-0.5)*2;
+      // Hızlı swipe → ip kes
+      if(t.identifier===touch0id){pp={...mp};mp=getPos(t);docut();}
+    }
+    if(e.touches.length>=2){let p=getPos(e.touches[1]);applyImpulse(p.x,p.y);sndPush();}
+    return;
+  }
   for(let t of e.changedTouches){
     if(t.identifier===touch0id){pp={...mp};mp=getPos(t);docut();}
     else{let p=getPos(t);applyImpulse(p.x,p.y);sndPush();}
   }
 },{passive:false});
-cv.addEventListener('touchend',e=>{for(let t of e.changedTouches)if(t.identifier===touch0id){cutting=false;touch0id=null;}});
+cv.addEventListener('touchend',e=>{
+  if(busMode){
+    if(e.touches.length===0){busTilt=0;busTouch=false;}
+    else{let t=e.touches[0];busTilt=((t.clientX/W)-0.5)*2;}
+    return;
+  }
+  for(let t of e.changedTouches)if(t.identifier===touch0id){cutting=false;touch0id=null;}
+});
 
 function applyImpulse(ix,iy){
   let rad=60;
@@ -2359,7 +2388,27 @@ function _renderStart(){
   goBtn.onclick=()=>{sndClick();document.getElementById('ov-auth').classList.remove('show');hideOv();newGame();};
   bc.appendChild(goBtn);
 
-  let row1=document.createElement('div');
+  // 🚌 Otobüs Modu toggle
+  let busRow=document.createElement('div');
+  busRow.style='display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px;opacity:.9';
+  let busLbl=document.createElement('span');
+  busLbl.style='font-size:12px;font-weight:700;color:rgba(255,255,255,.75)';
+  busLbl.textContent=lang==='tr'?'🚌 Otobüs Modu':'🚌 Bus Mode';
+  let busToggle=document.createElement('div');
+  busToggle.style=`width:44px;height:24px;border-radius:12px;cursor:pointer;position:relative;transition:background .2s;background:${busMode?'#ff6b35':'rgba(255,255,255,.2)'}`;
+  let busKnob=document.createElement('div');
+  busKnob.style=`position:absolute;top:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s;left:${busMode?'23px':'3px'}`;
+  busToggle.appendChild(busKnob);
+  busToggle.onclick=()=>{
+    sndClick();
+    busMode=!busMode;
+    busTilt=0;
+    busToggle.style.background=busMode?'#ff6b35':'rgba(255,255,255,.2)';
+    busKnob.style.left=busMode?'23px':'3px';
+  };
+  busRow.appendChild(busLbl);
+  busRow.appendChild(busToggle);
+  bc.appendChild(busRow);
   row1.style='display:flex;gap:8px;margin-bottom:8px';
   [{label:T('shop'),cls:'btn-shop',fn:openShop},{label:T('lvls'),cls:'btn-lvls',fn:openLevels}].forEach(b=>{
     let el=document.createElement('button');
