@@ -2084,6 +2084,7 @@ let currentMusicAudio=null;
 let introMusicPlaying=false;
 let introMusicNode=null;
 let musicPending=false;
+let _musicStarting=false; // race condition önleyici
 
 function _shuffleQueue(){
   // Fisher-Yates karıştır, son çalandan farklı başlat
@@ -2112,16 +2113,20 @@ function _playNext(){
   });
   audio.play().then(()=>{
     introMusicPlaying=true;
+    _musicStarting=false;
     musicPending=false;
   }).catch(()=>{
     musicPending=true;
+    _musicStarting=false;
     introMusicPlaying=false;
   });
 }
 
 function sndIntroMusic(){
   if(!musicOn) return;
-  if(introMusicPlaying) return;
+  if(introMusicPlaying||_musicStarting) return;
+  stopIntroMusic();
+  _musicStarting=true;
   _shuffleQueue();
   _playNext();
 }
@@ -2570,14 +2575,16 @@ function loginGG(){sndClick();loginWithGoogle();}
 function loginGuest(){userName=T('guest');resumeAudio();showStart();}
 
 function attachGyro(){
-  if(typeof DeviceMotionEvent==='undefined')return;
+  if(gyroOn) return; // zaten aktif, tekrar bağlama
+  if(typeof DeviceMotionEvent==='undefined') return;
   if(typeof DeviceMotionEvent.requestPermission==='function')
-    DeviceMotionEvent.requestPermission().then(s=>{if(s==='granted')startMotion();}).catch(()=>{});
+    DeviceMotionEvent.requestPermission().then(s=>{if(s==='granted') startMotion();}).catch(()=>{});
   else startMotion();
 }
 function startMotion(){
-  gyroOn=true;gyroSign=isAndroid?-1:1;
-  window.addEventListener('devicemotion',e=>{let a=e.accelerationIncludingGravity;if(a)rawTX=gyroSign*(a.x||0)/9.81;},{passive:true});
+  if(gyroOn) return; // duplicate listener önle
+  gyroOn=true; gyroSign=isAndroid?-1:1;
+  window.addEventListener('devicemotion',e=>{let a=e.accelerationIncludingGravity;if(a) rawTX=gyroSign*(a.x||0)/9.81;},{passive:true});
 }
 document.addEventListener('mousemove',e=>{deskTilt=((e.clientX/innerWidth)-.5)*1.2;});
 function sizeCanvas(){let el=document.getElementById('game');W=el.clientWidth;H=el.clientHeight;cv.width=W;cv.height=H;}
