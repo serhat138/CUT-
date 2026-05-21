@@ -680,7 +680,10 @@ async function loginWithFacebook(){
   try{
     await supa.auth.signInWithOAuth({
       provider:'facebook',
-      options:{redirectTo:window.location.href}
+      options:{
+        redirectTo:window.location.href,
+        scopes:'public_profile'
+      }
     });
   }catch(e){console.log('Facebook login err:',e);}
 }
