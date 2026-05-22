@@ -562,7 +562,9 @@ let supa=null,supaUser=null,cloudSyncEnabled=false;
 function initSupabase(){
   try{
     if(!window.supabase){console.log('Supabase SDK yuklenmedi');return;}
-    supa=window.supabase.createClient(SUPA_URL,SUPA_KEY);
+    supa=window.supabase.createClient(SUPA_URL,SUPA_KEY,{
+      auth:{detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}
+    });
 
     // OAuth redirect'ten donuldugunde hash'te token var
     let isOAuthReturn=window.location.hash.includes('access_token')||
@@ -592,7 +594,7 @@ function initSupabase(){
               showStart();
             });
           }
-        }),1000);
+        }),2500);
       }
     });
 
@@ -692,7 +694,7 @@ async function loginWithGoogle(){
     await supa.auth.signInWithOAuth({
       provider:'google',
       options:{
-        redirectTo:window.location.href,
+        redirectTo:window.location.origin+window.location.pathname,
         queryParams:{prompt:'select_account'}
       }
     });
@@ -705,7 +707,7 @@ async function loginWithFacebook(){
     await supa.auth.signInWithOAuth({
       provider:'facebook',
       options:{
-        redirectTo:window.location.href,
+        redirectTo:window.location.origin+window.location.pathname,
         scopes:'public_profile'
       }
     });
