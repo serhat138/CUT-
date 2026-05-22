@@ -2642,7 +2642,7 @@ function _renderStart(){
   learnBtn.onclick=()=>{sndClick();showHowToPlay();};
   bc.appendChild(learnBtn);
 
-
+  if(supaUser){
     let logoutBtn=document.createElement('button');
     logoutBtn.className='btn btn-sec';logoutBtn.style='font-size:11px;margin-bottom:8px';
     logoutBtn.innerHTML='✅ '+userName+' — '+(lang==='tr'?'🚪 Çıkış Yap':'🚪 Sign Out');
