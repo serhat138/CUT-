@@ -115,6 +115,10 @@ body{display:flex;flex-direction:column;align-items:center;background:#06000f}
   </div>
   <div id="bar-mid"><div id="bar-title">✂️ CUT!</div><div id="bar-lvl">BÖLÜM 1</div></div>
   <div style="display:flex;align-items:center;gap:4px">
+    <div class="bl" id="total-score-box" style="cursor:pointer" onclick="_toggleScoreMode()" title="Toplam Puan">
+      <div class="bll" id="lbl-tscore">TOPLAM</div>
+      <div class="blv" id="total-score-val">0</div>
+    </div>
     <div class="bl"><div class="bll" id="lbl-time">SÜRE</div><div class="blv" id="vt">30</div></div>
     <div id="tiltbub"><div id="tiltdot"></div></div>
     <div class="ibtn" id="btn-pause">⏸</div>
@@ -544,6 +548,12 @@ const isAndroid=/android/i.test(navigator.userAgent);
 
 let ropes=[],balls=[],holes=[],anchors=[],walls=[];
 let score=0,cuts=0,level=1,tries=MAX_TRIES,completed=0;
+let normalScore=0,busScore=0;
+let scoredLevels=new Set(),busScredLevels=new Set();
+try{normalScore=parseInt(localStorage.getItem('cut_nscore')||'0');}catch{}
+try{busScore=parseInt(localStorage.getItem('cut_bscore')||'0');}catch{}
+try{scoredLevels=new Set(JSON.parse(localStorage.getItem('cut_slvls')||'[]'));}catch{}
+try{busScredLevels=new Set(JSON.parse(localStorage.getItem('cut_bslvls')||'[]'));}catch{}
 
 const SUPA_URL='https://axtrrnbgzsvnminsbxod.supabase.co';
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF4dHJybmJnenN2bm1pbnNieG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxNzk1ODQsImV4cCI6MjA5NDc1NTU4NH0.8626ILvFkrPfKoiCDhV_nO7ejdJhmUj-TPn5V3cLDMk';
@@ -963,6 +973,21 @@ class Ball{
         score+=pts;coins+=Math.floor(pts/5);
         document.getElementById('vs').textContent=score;
         fxPts(h.x,h.y,pts);
+        // Kalıcı puan — her bölüm sadece 1 kez 5 puan
+        if(busMode){
+          if(!busScredLevels.has(level)){
+            busScredLevels.add(level);
+            busScore+=5;
+            try{localStorage.setItem('cut_bscore',busScore);localStorage.setItem('cut_bslvls',JSON.stringify([...busScredLevels]));}catch{}
+          }
+        } else {
+          if(!scoredLevels.has(level)){
+            scoredLevels.add(level);
+            normalScore+=5;
+            try{localStorage.setItem('cut_nscore',normalScore);localStorage.setItem('cut_slvls',JSON.stringify([...scoredLevels]));}catch{}
+          }
+        }
+        _updateScoreUI();
         checkWin();
         return;
       }
@@ -1596,7 +1621,7 @@ function onFail(timesUp){
     }});
   }
 
-  if(levelFailCount>=5) btns.push({label:T('cont'),cls:'btn-ad',fn:adContinue});
+  if(levelFailCount>=5&&!adsRemoved) btns.push({label:T('cont'),cls:'btn-ad',fn:adContinue});
   if(tries>0) btns.push({label:T('retry'),cls:'btn-main',fn:()=>{hideOv();sizeCanvas();buildLevel(level);}});
   else{
     btns.push({label:T('watchAd'),cls:'btn-ad',fn:watchAd});
@@ -1620,6 +1645,7 @@ function resumeAudio(){
 
 // Her 8 bölümde 1 interstitial reklam
 function _maybeShowInterstitial(onDone){
+  if(adsRemoved){onDone();return;}
   if(level>0 && level%8===0){
     showSimAd(onDone);
   } else {
