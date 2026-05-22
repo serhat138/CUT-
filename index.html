@@ -629,6 +629,19 @@ async function loadCloudSave(){
     if(data.owned_skins) ownedSkins=new Set(data.owned_skins);
     if(data.sfx_on!=null) sfxOn=data.sfx_on;
     if(data.music_on!=null) musicOn=data.music_on;
+    // Puan verileri
+    if(data.normal_score!=null) normalScore=data.normal_score;
+    if(data.bus_score!=null) busScore=data.bus_score;
+    if(data.scored_levels) scoredLevels=new Map(Object.entries(data.scored_levels).map(([k,v])=>[parseInt(k),v]));
+    if(data.bus_scored_levels) busScredLevels=new Map(Object.entries(data.bus_scored_levels).map(([k,v])=>[parseInt(k),v]));
+    // localStorage'ı da güncelle
+    try{
+      localStorage.setItem('cut_nscore',normalScore);
+      localStorage.setItem('cut_bscore',busScore);
+      localStorage.setItem('cut_slvls',JSON.stringify(Object.fromEntries(scoredLevels)));
+      localStorage.setItem('cut_bslvls',JSON.stringify(Object.fromEntries(busScredLevels)));
+    }catch{}
+    _updateScoreUI();
     updateStarUI();
     showToast(lang==='tr'?'Kayit yuklendi':'Save loaded');
   }catch(e){}
@@ -648,6 +661,9 @@ function cloudSave(){
         skip_tickets:skipTickets,level_stars:levelStars,coins:coins,
         equipped_skin:equippedSkin,owned_skins:[...ownedSkins],
         sfx_on:sfxOn,music_on:musicOn,
+        normal_score:normalScore,bus_score:busScore,
+        scored_levels:Object.fromEntries(scoredLevels),
+        bus_scored_levels:Object.fromEntries(busScredLevels),
         updated_at:new Date().toISOString()
       },{onConflict:'user_id'});
     }catch(e){}
@@ -1533,6 +1549,7 @@ function onWin(){
       try{localStorage.setItem('cut_nscore',normalScore);localStorage.setItem('cut_slvls',JSON.stringify(Object.fromEntries(scoredLevels)));}catch{}
     }
     _updateScoreUI();
+    cloudSave();
   }
 
   if(isHardcoreLevel(level)){
