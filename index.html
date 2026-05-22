@@ -973,28 +973,6 @@ class Ball{
         score+=pts;coins+=Math.floor(pts/5);
         document.getElementById('vs').textContent=score;
         fxPts(h.x,h.y,pts);
-
-        // ── Kalıcı puan sistemi ──
-        let levelDuration=timeLeft<=15?15:30;
-        let elapsed=levelDuration-timeLeft;
-        let scored=busMode?busScredLevels:scoredLevels;
-        let prevPts=scored.get(level)||0;
-        let timePts=elapsed<=10?20:elapsed<=20?15:5;
-        // İlk kez geçiyorsa tam puan, daha önce geçtiyse max 5
-        let finalPts=prevPts>0?5:timePts;
-        // Önceki puandan fazlaysa farkı ekle
-        if(finalPts>prevPts){
-          let diff=finalPts-prevPts;
-          scored.set(level,finalPts);
-          if(busMode){
-            busScore+=diff;
-            try{localStorage.setItem('cut_bscore',busScore);localStorage.setItem('cut_bslvls',JSON.stringify(Object.fromEntries(busScredLevels)));}catch{}
-          } else {
-            normalScore+=diff;
-            try{localStorage.setItem('cut_nscore',normalScore);localStorage.setItem('cut_slvls',JSON.stringify(Object.fromEntries(scoredLevels)));}catch{}
-          }
-          _updateScoreUI();
-        }
         checkWin();
         return;
       }
@@ -1534,6 +1512,26 @@ function onWin(){
   if(lvlDone)return;lvlDone=true;failState='DONE';
   clearInterval(timerInt);clearInterval(colorInt);clearTimeout(failTimer);
   tries=MAX_TRIES;levelFailCount=0;totalLevels++;
+
+  // ── Kalıcı puan sistemi ──
+  let levelDuration=timeLeft<=15?15:30;
+  let elapsed=levelDuration-timeLeft;
+  let scored=busMode?busScredLevels:scoredLevels;
+  let prevPts=scored.get(level)||0;
+  let timePts=elapsed<=10?20:elapsed<=20?15:5;
+  let finalPts=prevPts>0?5:timePts;
+  if(finalPts>prevPts){
+    let diff=finalPts-prevPts;
+    scored.set(level,finalPts);
+    if(busMode){
+      busScore+=diff;
+      try{localStorage.setItem('cut_bscore',busScore);localStorage.setItem('cut_bslvls',JSON.stringify(Object.fromEntries(busScredLevels)));}catch{}
+    } else {
+      normalScore+=diff;
+      try{localStorage.setItem('cut_nscore',normalScore);localStorage.setItem('cut_slvls',JSON.stringify(Object.fromEntries(scoredLevels)));}catch{}
+    }
+    _updateScoreUI();
+  }
 
   if(isHardcoreLevel(level)){
     completedHardcore.add(level);
