@@ -695,7 +695,13 @@ async function supaSignOut(){
     Object.keys(localStorage).forEach(k=>{
       if(k.startsWith('sb-')) localStorage.removeItem(k);
     });
+    localStorage.removeItem('cut_nscore');localStorage.removeItem('cut_bscore');
+    localStorage.removeItem('cut_slvls');localStorage.removeItem('cut_bslvls');
+    localStorage.removeItem('cut_done');localStorage.removeItem('cut_stars');
   }catch(e){}
+  normalScore=0;busScore=0;scoredLevels=new Map();busScredLevels=new Map();
+  completedLevels=new Set();completedHardcore=new Set();
+  totalStars=0;starsToday=0;skipTickets=0;coins=0;
   cloudSyncEnabled=false;supaUser=null;userName='';
   showToast(lang==='tr'?'Çıkış yapıldı':'Signed out');
   showStart();
