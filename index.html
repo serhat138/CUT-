@@ -549,11 +549,11 @@ const isAndroid=/android/i.test(navigator.userAgent);
 let ropes=[],balls=[],holes=[],anchors=[],walls=[];
 let score=0,cuts=0,level=1,tries=MAX_TRIES,completed=0;
 let normalScore=0,busScore=0;
-let scoredLevels=new Set(),busScredLevels=new Set();
+let scoredLevels=new Map(),busScredLevels=new Map();
 try{normalScore=parseInt(localStorage.getItem('cut_nscore')||'0');}catch{}
 try{busScore=parseInt(localStorage.getItem('cut_bscore')||'0');}catch{}
-try{scoredLevels=new Set(JSON.parse(localStorage.getItem('cut_slvls')||'[]'));}catch{}
-try{busScredLevels=new Set(JSON.parse(localStorage.getItem('cut_bslvls')||'[]'));}catch{}
+try{let d=JSON.parse(localStorage.getItem('cut_slvls')||'{}');scoredLevels=new Map(Object.entries(d).map(([k,v])=>[parseInt(k),v]));}catch{}
+try{let d=JSON.parse(localStorage.getItem('cut_bslvls')||'{}');busScredLevels=new Map(Object.entries(d).map(([k,v])=>[parseInt(k),v]));}catch{}
 
 const SUPA_URL='https://axtrrnbgzsvnminsbxod.supabase.co';
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF4dHJybmJnenN2bm1pbnNieG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxNzk1ODQsImV4cCI6MjA5NDc1NTU4NH0.8626ILvFkrPfKoiCDhV_nO7ejdJhmUj-TPn5V3cLDMk';
@@ -973,17 +973,31 @@ class Ball{
         score+=pts;coins+=Math.floor(pts/5);
         document.getElementById('vs').textContent=score;
         fxPts(h.x,h.y,pts);
-        // Kalıcı puan — her bölüm sadece 1 kez 5 puan
+        // Kalıcı puan — zaman bazlı, tekrar oynarsa max 5
+        let scored=busMode?busScredLevels:scoredLevels;
+        let tSec=document.getElementById('vt')?parseInt(document.getElementById('vt').textContent)||0:0;
+        // Bölüm süresi (sprint=15, normal=30)
+        let levelDuration=(tSec<=15&&timeLeft<=15)?15:30;
+        let elapsed=levelDuration-timeLeft;
+        let earnedPts;
+        if(elapsed<=10) earnedPts=20;
+        else if(elapsed<=20) earnedPts=15;
+        else earnedPts=5;
+        // Aynı bölümü daha önce geçtiyse max 5
+        let prevPts=scored.has?.[level]||0;
+        if(typeof scored.get==='function') prevPts=scored.get(level)||0;
+        let finalPts=scored.has(level)?Math.min(5,earnedPts):earnedPts;
         if(busMode){
-          if(!busScredLevels.has(level)){
+          if(!busScredLevels.has(level)||earnedPts>prevPts){
+            let diff=finalPts-(busScredLevels.has(level)?0:0);
+            busScore+=finalPts;
             busScredLevels.add(level);
-            busScore+=5;
             try{localStorage.setItem('cut_bscore',busScore);localStorage.setItem('cut_bslvls',JSON.stringify([...busScredLevels]));}catch{}
           }
         } else {
-          if(!scoredLevels.has(level)){
+          if(!scoredLevels.has(level)||earnedPts>prevPts){
+            normalScore+=finalPts;
             scoredLevels.add(level);
-            normalScore+=5;
             try{localStorage.setItem('cut_nscore',normalScore);localStorage.setItem('cut_slvls',JSON.stringify([...scoredLevels]));}catch{}
           }
         }
@@ -1653,8 +1667,27 @@ function _maybeShowInterstitial(onDone){
   }
 }
 
-// ═══════════════════════════════════════════════════════
-// REKLAM SİSTEMİ — APK'da gerçek AdMob ile değiştirilecek
+// Kalıcı puan UI
+let _showingBusScore=false;
+function _updateScoreUI(){
+  let val=_showingBusScore?busScore:normalScore;
+  let lbl=_showingBusScore?(lang==='tr'?'🚌 PUAN':'🚌 SCORE'):(lang==='tr'?'TOPLAM':'TOTAL');
+  document.getElementById('total-score-val').textContent=val;
+  document.getElementById('lbl-tscore').textContent=lbl;
+  // Bus modu aktifse otomatik bus skorunu göster
+  if(busMode!==_showingBusScore){
+    _showingBusScore=busMode;
+    _updateScoreUI();
+  }
+}
+function _toggleScoreMode(){
+  sndClick();
+  _showingBusScore=!_showingBusScore;
+  _updateScoreUI();
+  showToast(_showingBusScore?(lang==='tr'?'🚌 Otobüs Puanı':'🚌 Bus Score'):(lang==='tr'?'🎮 Normal Puan':'🎮 Normal Score'));
+}
+
+// ═══════════════════════════════════════════════════════ — APK'da gerçek AdMob ile değiştirilecek
 // ═══════════════════════════════════════════════════════
 let _adCallback=null;
 let _adCountdown=null;
@@ -2504,6 +2537,7 @@ function showStart(){
 }
 
 function _renderStart(){
+  _updateScoreUI();
   if(musicOn&&!introMusicPlaying) setTimeout(sndIntroMusic,300);
   if(!gyroOn&&!busMode) attachGyro();
   document.getElementById('ov-ico').innerHTML='✂️';
