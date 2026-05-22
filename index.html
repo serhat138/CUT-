@@ -975,15 +975,14 @@ class Ball{
         fxPts(h.x,h.y,pts);
 
         // ── Kalıcı puan sistemi ──
-        let levelDuration=timeLeft<=15?15:30; // sprint=15, normal=30
+        let levelDuration=timeLeft<=15?15:30;
         let elapsed=levelDuration-timeLeft;
-        // Zaman bazlı puan
-        let timePts= elapsed<=10?20 : elapsed<=20?15 : 5;
         let scored=busMode?busScredLevels:scoredLevels;
         let prevPts=scored.get(level)||0;
-        // Aynı bölümü daha önce geçtiyse max 5
-        let finalPts=prevPts>0?Math.min(5,timePts):timePts;
-        // Sadece öncekinden fazlaysa ekle (ilk kez veya daha iyi)
+        let timePts=elapsed<=10?20:elapsed<=20?15:5;
+        // İlk kez geçiyorsa tam puan, daha önce geçtiyse max 5
+        let finalPts=prevPts>0?5:timePts;
+        // Önceki puandan fazlaysa farkı ekle
         if(finalPts>prevPts){
           let diff=finalPts-prevPts;
           scored.set(level,finalPts);
@@ -1695,15 +1694,14 @@ function showHowToPlay(){
 // Kalıcı puan UI
 let _showingBusScore=false;
 function _updateScoreUI(){
+  // Üst bar
   let val=_showingBusScore?busScore:normalScore;
   let lbl=_showingBusScore?(lang==='tr'?'🚌 PUAN':'🚌 SCORE'):(lang==='tr'?'TOPLAM':'TOTAL');
-  document.getElementById('total-score-val').textContent=val;
-  document.getElementById('lbl-tscore').textContent=lbl;
-  // Bus modu aktifse otomatik bus skorunu göster
-  if(busMode!==_showingBusScore){
-    _showingBusScore=busMode;
-    _updateScoreUI();
-  }
+  let el=document.getElementById('total-score-val');
+  if(el) el.textContent=val;
+  let lel=document.getElementById('lbl-tscore');
+  if(lel) lel.textContent=lbl;
+  if(busMode!==_showingBusScore){_showingBusScore=busMode;}
 }
 function _toggleScoreMode(){
   sndClick();
@@ -2571,6 +2569,20 @@ function _renderStart(){
   document.getElementById('tries-row').style.display='none';
   let bc=document.getElementById('ov-btns');
   bc.innerHTML='';
+
+  // Ana menü puan gösterimi
+  let scoreRow=document.createElement('div');
+  scoreRow.style='display:flex;gap:10px;justify-content:center;margin-bottom:14px';
+  scoreRow.innerHTML=`
+    <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:8px 16px;text-align:center;min-width:100px">
+      <div style="font-size:9px;font-weight:800;color:rgba(255,255,255,.45);letter-spacing:1px;margin-bottom:2px">🎮 NORMAL</div>
+      <div style="font-size:20px;font-weight:900;color:#ffd700">${normalScore}</div>
+    </div>
+    <div style="background:rgba(255,107,53,.1);border:1px solid rgba(255,107,53,.25);border-radius:12px;padding:8px 16px;text-align:center;min-width:100px">
+      <div style="font-size:9px;font-weight:800;color:rgba(255,107,53,.7);letter-spacing:1px;margin-bottom:2px">🚌 OTOBÜS</div>
+      <div style="font-size:20px;font-weight:900;color:#ff6b35">${busScore}</div>
+    </div>`;
+  bc.appendChild(scoreRow);
 
   let goBtn=document.createElement('button');
   goBtn.className='btn btn-main';goBtn.style='font-size:17px;padding:13px;margin-bottom:14px';
