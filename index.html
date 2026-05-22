@@ -1548,8 +1548,8 @@ function onWin(){
   let starStr='⭐'.repeat(starCount)+(gained>0?` <small style="opacity:.65">(+${gained})</small>`:'');
   let ticketStr=skipTickets>0?`<br><small style="opacity:.55">🎫 ${skipTickets} ${lang==='tr'?'geçiş hakkın var':'skip tickets'}</small>`:'';
   let nextFn=isHardcoreLevel(level)
-    ?()=>{hideOv();level++;sizeCanvas();buildHardcoreLevel(level);}
-    :()=>{hideOv();level++;sizeCanvas();buildLevel(level);};
+    ?()=>{hideOv();_maybeShowInterstitial(()=>{level++;sizeCanvas();buildHardcoreLevel(level);});}
+    :()=>{hideOv();_maybeShowInterstitial(()=>{level++;sizeCanvas();buildLevel(level);});};
   showOv('🎊',T('winTtl'),`${starStr}<br>${eff}<br><b>${cuts}</b> ${lang==='tr'?'kesimde':'cuts'}<br>${T('score')}: <b>${score}</b>${ticketStr}`,[
     {label:T('next'),cls:'btn-main',fn:nextFn},
     {label:T('shop'),cls:'btn-shop',fn:openShop},
@@ -1616,6 +1616,15 @@ function resumeAudio(){
     if(musicCtx&&musicCtx.state==='suspended') musicCtx.resume();
     if(levelMusicCtx&&levelMusicCtx.state==='suspended') levelMusicCtx.resume();
   },100);
+}
+
+// Her 8 bölümde 1 interstitial reklam
+function _maybeShowInterstitial(onDone){
+  if(level>0 && level%8===0){
+    showSimAd(onDone);
+  } else {
+    onDone();
+  }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1753,13 +1762,51 @@ try{adsRemoved=!!JSON.parse(localStorage.getItem('cut_noads')||'false');}catch{}
 
 function removeAds(){
   sndClick();
+  if(adsRemoved){
+    showToast(lang==='tr'?'Reklamlar zaten kaldırıldı ✨':'Ads already removed ✨');
+    return;
+  }
+  // Satın alma ekranı göster
+  let overlay=document.createElement('div');
+  overlay.id='purchase-overlay';
+  overlay.style='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center';
+  overlay.innerHTML=`
+    <div style="width:88%;max-width:340px;background:#1a1a2e;border-radius:20px;overflow:hidden;box-shadow:0 0 40px rgba(0,0,0,.8);text-align:center">
+      <div style="background:linear-gradient(135deg,#f7971e,#ffd200);padding:28px 20px">
+        <div style="font-size:44px">✨</div>
+        <div style="font-size:22px;font-weight:900;color:#1a1a2e;margin-top:8px">${lang==='tr'?'Reklamsız Sürüm':'Ad-Free Version'}</div>
+        <div style="font-size:13px;color:rgba(0,0,0,.6);margin-top:4px">${lang==='tr'?'Tek seferlik ödeme':'One-time payment'}</div>
+      </div>
+      <div style="padding:20px">
+        <div style="color:rgba(255,255,255,.7);font-size:13px;line-height:1.8;margin-bottom:16px">
+          ${lang==='tr'?'✓ Tüm reklamlar kaldırılır<br>✓ Kesintisiz oyun deneyimi<br>✓ Sonsuza kadar geçerli':'✓ All ads removed<br>✓ Uninterrupted gameplay<br>✓ Valid forever'}
+        </div>
+        <div style="background:#ffd200;color:#1a1a2e;border-radius:12px;padding:14px;font-size:18px;font-weight:900;cursor:pointer;margin-bottom:10px" onclick="_confirmPurchase()">
+          ${lang==='tr'?'10 ₺ ile Satın Al':'Buy for ₺10'}
+        </div>
+        <div style="color:rgba(255,255,255,.3);font-size:11px;margin-bottom:12px">Google Play ${lang==='tr'?'üzerinden':'via'} In-App Purchase</div>
+        <div style="color:rgba(255,255,255,.4);font-size:12px;cursor:pointer;padding:8px" onclick="_closePurchase()">${lang==='tr'?'Vazgeç':'Cancel'}</div>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+}
 
-  alert(lang==='tr'?'Reklamsız sürüm yakında! (Yakında uygulama içi satın alma)':'Ad-free coming soon! (In-app purchase)');
+function _confirmPurchase(){
+  // APK'da burası Google Play billing ile değiştirilecek
+  // Şimdilik simüle et
+  _closePurchase();
+  showSimAd(()=>{
+    adsRemoved=true;
+    try{localStorage.setItem('cut_noads','true');}catch{}
+    showToast(lang==='tr'?'Reklamlar kaldırıldı! ✨ Teşekkürler!':'Ads removed! ✨ Thank you!');
+    updateStarUI();
+  });
+}
+
+function _closePurchase(){
+  let el=document.getElementById('purchase-overlay');
+  if(el) el.remove();
   resumeAudio();
-
-  // adsRemoved=true; localStorage.setItem('cut_noads','true');
-
-  showStart();
 }
 function goMenu(){
   clearInterval(timerInt);clearInterval(colorInt);clearTimeout(failTimer);
