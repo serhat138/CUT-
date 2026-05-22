@@ -606,7 +606,8 @@ function initSupabase(){
           showStart();
         });
       } else if(event==='SIGNED_OUT'){
-        supaUser=null;cloudSyncEnabled=false;
+        supaUser=null;cloudSyncEnabled=false;userName='';
+        showStart();
       }
     });
   }catch(e){console.log('Supabase err:',e);}
@@ -959,7 +960,8 @@ class Ball{
     if(this.done||this.gone)return;
     this.phase+=.05;
     if(!this.falling)return;
-    this.vx=(this.vx+gx*2.2)*.992;
+    let hGrav=busMode?0:gx*2.2;
+    this.vx=(this.vx+hGrav)*(busMode?.85:.992);
     this.vy=(this.vy+gy*gMult())*.992;
     this.x+=this.vx;this.y+=this.vy;
 
