@@ -619,7 +619,20 @@ async function loadCloudSave(){
   if(!supa||!supaUser) return;
   try{
     let {data}=await supa.from('player_saves').select('*').eq('user_id',supaUser.id).single();
-    if(!data) return;
+    if(!data){
+      // Bu hesaba ait kayıt yok — her şeyi sıfırla
+      normalScore=0;busScore=0;
+      scoredLevels=new Map();busScredLevels=new Map();
+      completedLevels=new Set();completedHardcore=new Set();
+      totalStars=0;starsToday=0;skipTickets=0;coins=0;
+      try{
+        localStorage.removeItem('cut_nscore');localStorage.removeItem('cut_bscore');
+        localStorage.removeItem('cut_slvls');localStorage.removeItem('cut_bslvls');
+        localStorage.removeItem('cut_done');localStorage.removeItem('cut_stars');
+      }catch{}
+      _updateScoreUI();updateStarUI();
+      return;
+    }
     if(data.completed_levels) completedLevels=new Set(data.completed_levels);
     if(data.completed_hardcore) completedHardcore=new Set(data.completed_hardcore);
     if(data.stars!=null) totalStars=data.stars;
