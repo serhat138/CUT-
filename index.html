@@ -607,7 +607,7 @@ function initSupabase(){
         });
       } else if(event==='SIGNED_OUT'){
         supaUser=null;cloudSyncEnabled=false;userName='';
-        showStart();
+        setTimeout(()=>window.location.reload(),300);
       }
     });
   }catch(e){console.log('Supabase err:',e);}
