@@ -969,7 +969,9 @@ class Ball{
         this.done=true;completed++;
         fxStars(h.x,h.y);
         sndGoal();
-        let pts=Math.max(5,30-cuts*5);
+        let levelDuration2=timeLeft<=15?15:30;
+        let elapsed2=levelDuration2-timeLeft;
+        let pts=elapsed2<=10?20:elapsed2<=20?15:5;
         score+=pts;coins+=Math.floor(pts/5);
         document.getElementById('vs').textContent=score;
         fxPts(h.x,h.y,pts);
@@ -1629,8 +1631,14 @@ function onFail(timesUp){
   if(levelFailCount>=5&&!adsRemoved) btns.push({label:T('cont'),cls:'btn-ad',fn:adContinue});
   if(tries>0) btns.push({label:T('retry'),cls:'btn-main',fn:()=>{hideOv();sizeCanvas();buildLevel(level);}});
   else{
-    btns.push({label:T('watchAd'),cls:'btn-ad',fn:watchAd});
-    btns.push({label:T('retry'),cls:'btn-sec',fn:()=>{tries=MAX_TRIES;hideOv();sizeCanvas();buildLevel(level);}});
+    if(!adsRemoved) btns.push({label:T('watchAd'),cls:'btn-ad',fn:watchAd});
+    btns.push({label:T('retry'),cls:'btn-sec',fn:()=>{
+      if(levelFailCount>=5&&!adsRemoved){
+        showSimAd(()=>{tries=MAX_TRIES;levelFailCount=0;hideOv();sizeCanvas();buildLevel(level);});
+      } else {
+        tries=MAX_TRIES;hideOv();sizeCanvas();buildLevel(level);
+      }
+    }});
   }
 
   if(starsToday<30){
