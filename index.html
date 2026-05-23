@@ -609,7 +609,6 @@ function initSupabase(){
         });
       } else if(event==='SIGNED_OUT'){
         supaUser=null;cloudSyncEnabled=false;userName='';
-        setTimeout(()=>window.location.reload(),300);
       }
     });
   }catch(e){console.log('Supabase err:',e);}
@@ -722,7 +721,7 @@ async function supaSignOut(){
   totalStars=0;starsToday=0;skipTickets=0;coins=0;
   cloudSyncEnabled=false;supaUser=null;userName='';
   showToast(lang==='tr'?'Çıkış yapıldı':'Signed out');
-  showStart();
+  setTimeout(()=>window.location.reload(),800);
 }
 
 async function loginWithGoogle(){
@@ -999,8 +998,8 @@ class Ball{
     if(this.done||this.gone)return;
     this.phase+=.05;
     if(!this.falling)return;
-    let hGrav=busMode?(this.falling?busTilt*1.5:0):gx*2.2;
-    this.vx=(this.vx+hGrav)*(busMode?.88:.992);
+    let hGrav=busMode?(this.falling?busTilt*0.8:0):gx*2.2;
+    this.vx=(this.vx+hGrav)*(busMode&&this.falling?.88:.992);
     this.vy=(this.vy+gy*gMult())*.992;
     this.x+=this.vx;this.y+=this.vy;
 
