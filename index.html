@@ -981,8 +981,8 @@ class Ball{
     if(this.done||this.gone)return;
     this.phase+=.05;
     if(!this.falling)return;
-    let hGrav=busMode?0:gx*2.2;
-    this.vx=(this.vx+hGrav)*(busMode?.85:.992);
+    let hGrav=busMode?(this.falling?busTilt*4:0):gx*2.2;
+    this.vx=(this.vx+hGrav)*(busMode?.92:.992);
     this.vy=(this.vy+gy*gMult())*.992;
     this.x+=this.vx;this.y+=this.vy;
 
