@@ -683,10 +683,28 @@ function cloudSave(){
         updated_at:new Date().toISOString()
       },{onConflict:'user_id'});
     }catch(e){}
-  },2000);
+  },500);
 }
 
 async function supaSignOut(){
+  // Önce kaydet
+  if(cloudSyncEnabled&&supaUser){
+    try{
+      await supa.from('player_saves').upsert({
+        user_id:supaUser.id,
+        completed_levels:[...completedLevels],
+        completed_hardcore:[...completedHardcore],
+        stars:totalStars,stars_today:starsToday,last_star_date:lastStarDate,
+        skip_tickets:skipTickets,level_stars:levelStars,coins:coins,
+        equipped_skin:equippedSkin,owned_skins:[...ownedSkins],
+        sfx_on:sfxOn,music_on:musicOn,
+        normal_score:normalScore,bus_score:busScore,
+        scored_levels:Object.fromEntries(scoredLevels),
+        bus_scored_levels:Object.fromEntries(busScredLevels),
+        updated_at:new Date().toISOString()
+      },{onConflict:'user_id'});
+    }catch(e){}
+  }
   try{
     if(supa) await supa.auth.signOut({scope:'local'});
   }catch(e){}
@@ -981,8 +999,8 @@ class Ball{
     if(this.done||this.gone)return;
     this.phase+=.05;
     if(!this.falling)return;
-    let hGrav=busMode?(this.falling?busTilt*4:0):gx*2.2;
-    this.vx=(this.vx+hGrav)*(busMode?.92:.992);
+    let hGrav=busMode?(this.falling?busTilt*1.5:0):gx*2.2;
+    this.vx=(this.vx+hGrav)*(busMode?.88:.992);
     this.vy=(this.vy+gy*gMult())*.992;
     this.x+=this.vx;this.y+=this.vy;
 
