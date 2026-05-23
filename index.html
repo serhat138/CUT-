@@ -668,7 +668,7 @@ function cloudSave(){
   clearTimeout(cloudSaveTimer);
   cloudSaveTimer=setTimeout(async()=>{
     try{
-      await supa.from('player_saves').upsert({
+      const payload={
         user_id:supaUser.id,
         completed_levels:[...completedLevels],
         completed_hardcore:[...completedHardcore],
@@ -680,8 +680,17 @@ function cloudSave(){
         scored_levels:Object.fromEntries(scoredLevels),
         bus_scored_levels:Object.fromEntries(busScredLevels),
         updated_at:new Date().toISOString()
-      },{onConflict:'user_id'});
-    }catch(e){}
+      };
+      // Önce var mı kontrol et
+      let {data:existing}=await supa.from('player_saves').select('user_id').eq('user_id',supaUser.id).single();
+      let result;
+      if(existing){
+        result=await supa.from('player_saves').update(payload).eq('user_id',supaUser.id);
+      } else {
+        result=await supa.from('player_saves').insert(payload);
+      }
+      if(result.error) console.error('cloudSave error:',result.error);
+    }catch(e){console.error('cloudSave catch:',e);}
   },500);
 }
 
@@ -689,7 +698,7 @@ async function supaSignOut(){
   // Önce kaydet
   if(cloudSyncEnabled&&supaUser){
     try{
-      await supa.from('player_saves').upsert({
+      const payload={
         user_id:supaUser.id,
         completed_levels:[...completedLevels],
         completed_hardcore:[...completedHardcore],
@@ -701,8 +710,14 @@ async function supaSignOut(){
         scored_levels:Object.fromEntries(scoredLevels),
         bus_scored_levels:Object.fromEntries(busScredLevels),
         updated_at:new Date().toISOString()
-      },{onConflict:'user_id'});
-    }catch(e){}
+      };
+      let {data:existing}=await supa.from('player_saves').select('user_id').eq('user_id',supaUser.id).single();
+      if(existing){
+        await supa.from('player_saves').update(payload).eq('user_id',supaUser.id);
+      } else {
+        await supa.from('player_saves').insert(payload);
+      }
+    }catch(e){console.error('signout save err:',e);}
   }
   try{
     if(supa) await supa.auth.signOut({scope:'local'});
