@@ -109,185 +109,7 @@ body{display:flex;flex-direction:column;align-items:center;background:#06000f}
 <canvas id="bgcv"></canvas>
 <div id="bar">
   <div style="display:flex;align-items:center;gap:5px">
-    <div class="bl"><div class="bll" id="lbl-cuts">KESİM</div><div class="blv" id="vc">0</div></div>
-    <div id="star-bar" title="Yıldızlar">⭐<span id="star-count">0</span></div>
-  </div>
-  <div id="bar-mid"><div id="bar-title">✂️ CUT!</div><div id="bar-lvl">BÖLÜM 1</div></div>
-  <div style="display:flex;align-items:center;gap:4px">
-    <div class="bl" id="total-score-box" style="cursor:pointer" onclick="_toggleScoreMode()" title="Toplam Puan">
-      <div class="bll" id="lbl-tscore">TOPLAM</div>
-      <div class="blv" id="total-score-val">0</div>
-    </div>
-    <div class="bl"><div class="bll" id="lbl-time">SÜRE</div><div class="blv" id="vt">30</div></div>
-    <div id="tiltbub"><div id="tiltdot"></div></div>
-    <div class="ibtn" id="btn-pause">⏸</div>
-    <div class="ibtn" id="btn-restart">↺</div>
-  </div>
-</div>
-<div id="game"><canvas id="cv"></canvas><div id="tiltbub"><div id="tiltdot"></div></div><div id="tut"></div></div>
-
-
-<div class="ov" id="ov-auth" style="z-index:300">
-  <div class="box" style="max-width:300px">
-    <div id="auth-content"></div>
-    <button class="btn btn-sec" id="auth-close" style="margin-top:8px">✕ Kapat</button>
-  </div>
-</div>
-
-<div class="ov show" id="ov-lang">
-  <div class="box">
-    <div class="box-ico">✂️</div><div class="box-ttl">CUT!</div>
-    <div class="box-sub" style="margin-bottom:16px">Dilinizi seçin / Choose your language</div>
-    <div class="lang-row">
-      <button class="btn-lang" onclick="sndClick();resumeAudio();if(musicOn)setTimeout(sndIntroMusic,200);initLang('tr')">🇹🇷<br><small style="font-size:10px">Türkçe</small></button>
-      <button class="btn-lang" onclick="sndClick();resumeAudio();if(musicOn)setTimeout(sndIntroMusic,200);initLang('en')">🇬🇧<br><small style="font-size:10px">English</small></button>
-    </div>
-  </div>
-</div>
-<div class="ov" id="ov-main">
-  <div class="box">
-    <div class="box-ico" id="ov-ico">✂️</div><div class="box-ttl" id="ov-ttl"></div>
-    <div id="tries-row"></div><div class="box-sub" id="ov-sub"></div><div id="ov-btns"></div>
-  </div>
-</div>
-<div class="ov" id="ov-pause">
-  <div class="box"><div class="box-ico">⏸️</div><div class="box-ttl" id="pause-ttl">Duraklatıldı</div><div id="pause-btns"></div></div>
-</div>
-<div class="ov" id="ov-shop">
-  <div class="box" style="max-width:350px">
-    <div class="box-ico">🛒</div><div class="box-ttl" id="shop-ttl">Koleksiyon</div>
-    <div class="box-sub" id="shop-coins"></div>
-    <div id="shop-grid"></div>
-    <button class="btn btn-sec" id="shop-close">Kapat ✕</button>
-  </div>
-</div>
-<div class="ov" id="ov-settings">
-  <div class="box" style="max-width:320px">
-    <div class="box-ico">⚙️</div>
-    <div class="box-ttl" id="settings-ttl">Ayarlar</div>
-    <div id="settings-body" style="margin-bottom:14px"></div>
-    <button class="btn btn-sec" id="settings-close">Kapat ✕</button>
-  </div>
-</div>
-
-<div class="ov" id="ov-lb">
-  <div class="box" style="max-width:340px">
-    <div class="box-ico">🏆</div><div class="box-ttl" id="lb-ttl">Sıralama</div>
-    <div id="lb-list"></div><button class="btn btn-sec" id="lb-close">Kapat</button>
-  </div>
-</div>
-<div class="ov" id="ov-lvls">
-  <div class="box" style="max-width:370px">
-    <div class="box-ico">🗺️</div><div class="box-ttl" id="lvls-ttl">Bölümler</div>
-    <div id="lvl-grid"></div><button class="btn btn-sec" id="lvls-close">Kapat</button>
-  </div>
-</div>
-
-<script></script>
-<meta name="apple-mobile-web-app-capable" content="yes">
-<title>CUT!</title>
-<style>
-/* System fonts only - no external dependency */
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
-html,body{width:100%;height:100%;overflow:hidden;position:fixed;font-family:'Trebuchet MS','Segoe UI',system-ui,sans-serif;color:#fff;user-select:none}
-body{display:flex;flex-direction:column;align-items:center;background:#06000f}
-#bgcv{position:fixed;inset:0;z-index:0;pointer-events:none}
-#bar{position:relative;z-index:10;width:100%;max-width:700px;flex-shrink:0;
-  display:none;/* hidden by default, shown in menus */
-  align-items:center;justify-content:space-between;gap:4px;
-  padding:6px 10px;background:rgba(0,0,0,.65);border-bottom:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)}
-#bar.ingame{display:flex}/* shown only during gameplay */
-.bl{text-align:center;min-width:40px}
-.bll{font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.38);font-weight:800}
-.blv{font-size:18px;font-weight:900;line-height:1.1}
-#vs{color:#ffd700;text-shadow:0 0 10px rgba(255,215,0,.6)}
-#vc{color:#ff6b35;text-shadow:0 0 10px rgba(255,107,53,.5)}
-#vt{color:#2ecc71;text-shadow:0 0 10px rgba(46,204,113,.6);font-size:20px}
-#bar-mid{display:flex;flex-direction:column;align-items:center}
-#bar-title{font-size:15px;font-weight:900;letter-spacing:1px}
-#bar-lvl{font-size:9px;color:rgba(255,255,255,.4);font-weight:800;letter-spacing:1px}
-.ibtn{width:29px;height:29px;border-radius:50%;border:1px solid rgba(255,255,255,.18);
-  background:rgba(255,255,255,.07);color:#fff;font-size:13px;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;font-weight:900;flex-shrink:0}
-.ibtn:active{background:rgba(255,255,255,.22)}
-#game{position:relative;z-index:5;width:100%;max-width:700px;flex:1;min-height:0;overflow:hidden}
-#cv{width:100%;height:100%;touch-action:none;display:block}
-#tiltbub{display:none}
-#tiltdot{display:none}
-#tut{position:absolute;z-index:50;pointer-events:none;display:none}
-.ta{font-size:28px;animation:tb .65s infinite alternate;display:block;text-align:center}
-.tt{font-size:11px;font-weight:900;background:rgba(0,0,0,.65);border-radius:8px;padding:3px 9px;margin-top:3px;text-align:center;white-space:nowrap;border:1px solid rgba(255,255,255,.15)}
-@keyframes tb{0%{transform:translateY(0)}100%{transform:translateY(-9px)}}
-.ov{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;
-  background:rgba(0,0,0,.0);transition:background .3s}
-.ov.show{display:flex;background:rgba(0,0,0,.0)}
-.ov.show .box{animation:fds .32s ease-out both}
-@keyframes fds{0%{opacity:0;transform:translateY(16px) scale(.94)}100%{opacity:1;transform:none}}
-/* Lang overlay: zero bg, ropes fully visible */
-#ov-lang.show{background:rgba(0,0,0,.0) !important}
-.box{background:linear-gradient(145deg,rgba(26,10,52,.72),rgba(8,2,20,.75));
-  border:1.5px solid rgba(255,255,255,.18);border-radius:22px;padding:22px 26px;
-  text-align:center;max-width:330px;width:93%;
-  box-shadow:0 20px 60px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.12);
-  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
-.box-ico{font-size:42px;margin-bottom:8px;line-height:1}
-.box-ttl{font-size:22px;font-weight:900;margin-bottom:5px;color:#ffd700;text-shadow:0 0 16px rgba(255,215,0,.4)}
-.box-sub{font-size:12px;color:rgba(255,255,255,.62);line-height:1.6;margin-bottom:13px;font-weight:700}
-.btn{display:block;width:100%;max-width:250px;margin:0 auto 7px;font-size:14px;font-weight:900;color:#fff;
-  font-family:'Nunito',sans-serif;padding:10px 14px;border-radius:50px;border:none;cursor:pointer;transition:transform .1s}
-.btn:active{transform:scale(.93)}.btn:last-child{margin-bottom:0}
-.btn-main{background:linear-gradient(135deg,#ff6b35,#d03010);box-shadow:0 4px 14px rgba(255,107,53,.4)}
-.btn-ad{background:linear-gradient(135deg,#f9ca24,#e67e22);color:#1a1000;font-size:12px}
-.btn-sec{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);font-size:12px}
-.btn-shop{background:linear-gradient(135deg,#6c5ce7,#8e44ad);font-size:12px}
-.btn-fb{background:linear-gradient(135deg,#1877f2,#0a4ebd);font-size:12px}
-.btn-gg{background:#fff;color:#333;font-size:12px}
-.btn-guest{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);font-size:12px}
-.btn-lb{background:linear-gradient(135deg,#00b894,#00796b);font-size:12px}
-.btn-lvls{background:linear-gradient(135deg,#fd79a8,#c0392b);font-size:12px}
-.btn-settings{background:linear-gradient(135deg,#636e72,#2d3436);font-size:12px}
-.setting-row{display:flex;align-items:center;justify-content:space-between;padding:10px 4px;border-bottom:1px solid rgba(255,255,255,.08);font-size:13px;font-weight:800}
-.setting-row:last-child{border-bottom:none}
-.toggle{width:44px;height:24px;border-radius:12px;background:rgba(255,255,255,.15);border:none;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0}
-.toggle.on{background:#ff6b35}
-.toggle::after{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;top:3px;left:3px;transition:left .2s}
-.toggle.on::after{left:23px}
-.lang-row{display:flex;gap:10px;justify-content:center;margin-top:4px}
-.btn-lang{flex:1;background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.14);
-  border-radius:14px;padding:12px 6px;color:#fff;cursor:pointer;font-size:17px;font-weight:900;
-  font-family:'Nunito',sans-serif;transition:all .14s}
-.btn-lang:active{background:rgba(255,107,53,.28);border-color:#ff6b35}
-#tries-row{display:flex;gap:5px;justify-content:center;margin-bottom:10px}
-.tdot{width:11px;height:11px;border-radius:50%;transition:background .25s}
-.tdot-live{background:#2ecc71;box-shadow:0 0 5px #2ecc71}.tdot-used{background:rgba(255,255,255,.13)}
-#shop-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px;max-height:300px;overflow-y:auto}
-.sitem{border-radius:11px;padding:8px 4px;text-align:center;cursor:pointer;
-  border:2px solid rgba(255,255,255,.09);background:rgba(255,255,255,.04);transition:all .13s}
-.sitem.owned{border-color:rgba(46,204,113,.35)}.sitem.equipped{border-color:#2ecc71;background:rgba(46,204,113,.15)}
-.sitem:active{transform:scale(.9)}.sico{font-size:22px;margin-bottom:2px}
-.sname{font-size:8px;font-weight:800;color:rgba(255,255,255,.6)}.sprice{font-size:9px;font-weight:900;color:#ffd700}
-#lb-list{max-height:240px;overflow-y:auto;margin-bottom:10px}
-.lbrow{display:flex;align-items:center;padding:6px 8px;border-radius:9px;margin-bottom:4px;
-  background:rgba(255,255,255,.05);font-size:11px;font-weight:800}
-.lbrow.me{background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.22)}
-#lvl-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;max-height:320px;overflow-y:auto;margin-bottom:10px}
-.lvlcell{border-radius:9px;padding:7px 2px;text-align:center;cursor:pointer;font-size:11px;font-weight:900;
-  border:1.5px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);transition:all .12s}
-.lvlcell.done{background:rgba(46,204,113,.15);border-color:rgba(46,204,113,.4);color:#2ecc71}
-.lvlcell:active{transform:scale(.88)}
-.sp{position:fixed;pointer-events:none;z-index:300;font-size:16px;animation:spUp .8s ease-out forwards}
-@keyframes spUp{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-65px)}}
-.scpop{position:fixed;pointer-events:none;z-index:300;font-size:19px;font-weight:900;
-  color:#ffd700;text-shadow:0 2px 4px rgba(0,0,0,.8);animation:spUp .9s ease-out forwards}
-#star-bar{display:inline-flex;align-items:center;gap:3px;font-size:13px;font-weight:900;
-  color:#ffd700;padding:2px 7px;border-radius:12px;
-  background:rgba(255,215,0,.12);border:1px solid rgba(255,215,0,.28);cursor:default}
-</style>
-</head>
-<body>
-<canvas id="bgcv"></canvas>
-<div id="bar">
-  <div style="display:flex;align-items:center;gap:5px">
+    <div class="bl"><div class="bll" id="lbl-score">PUAN</div><div class="blv" id="vs">0</div></div>
     <div class="bl"><div class="bll" id="lbl-cuts">KESİM</div><div class="blv" id="vc">0</div></div>
     <div id="star-bar" title="Yıldızlar">⭐<span id="star-count">0</span></div>
   </div>
@@ -797,7 +619,7 @@ async function loadCloudSave(){
   try{
     let {data}=await supa.from('player_saves').select('*').eq('user_id',supaUser.id).single();
     if(!data){
-      // Bu hesaba ait kayit yok - her seyi sifirla
+      // Bu hesaba ait kayıt yok — her şeyi sıfırla
       normalScore=0;busScore=0;
       scoredLevels=new Map();busScredLevels=new Map();
       completedLevels=new Set();completedHardcore=new Set();
@@ -1821,14 +1643,6 @@ function onWin(){
     return;
   }
 
-  let earnedMsg='';
-  if(finalPts>prevPts){
-    let diff=finalPts-prevPts;
-    earnedMsg=`<br><b style="color:#ffd700">+${diff} ${busMode?'🚌':'🎮'} ${lang==='tr'?'puan':'pts'}</b>`;
-  } else {
-    earnedMsg=`<br><span style="color:rgba(255,255,255,.4);font-size:12px">${lang==='tr'?'Bu bölüm zaten geçildi':'Level already completed'}</span>`;
-  }
-
   let eff=cuts<=1?T('perf'):cuts<=3?T('great'):cuts<=5?T('good'):T('ok');
 
   let starCount=calcStars(timeLeft);
@@ -1840,7 +1654,7 @@ function onWin(){
   let nextFn=isHardcoreLevel(level)
     ?()=>{hideOv();_maybeShowInterstitial(()=>{level++;sizeCanvas();buildHardcoreLevel(level);});}
     :()=>{hideOv();_maybeShowInterstitial(()=>{level++;sizeCanvas();buildLevel(level);});};
-  showOv('🎊',T('winTtl'),`${starStr}<br>${eff}<br><b>${cuts}</b> ${lang==='tr'?'kesimde':'cuts'}${earnedMsg}<br><small style="opacity:.55">${lang==='tr'?'Toplam':'Total'}: ${busMode?busScore:normalScore} ${busMode?'🚌':'🎮'}</small>${ticketStr}`,[
+  showOv('🎊',T('winTtl'),`${starStr}<br>${eff}<br><b>${cuts}</b> ${lang==='tr'?'kesimde':'cuts'}<br>${T('score')}: <b>${score}</b>${ticketStr}`,[
     {label:T('next'),cls:'btn-main',fn:nextFn},
     {label:T('shop'),cls:'btn-shop',fn:openShop},
     {label:T('menu'),cls:'btn-sec',fn:goMenu},
