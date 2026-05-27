@@ -1700,17 +1700,13 @@ function onFail(timesUp){
     }});
   }
 
-  if(levelFailCount>=5&&!adsRemoved) btns.push({label:T('cont'),cls:'btn-ad',fn:adContinue});
-  if(tries>0) btns.push({label:T('retry'),cls:'btn-main',fn:()=>{hideOv();sizeCanvas();buildLevel(level);}});
-  else{
+  if(levelFailCount>=5&&!adsRemoved){
+    btns.push({label:T('cont'),cls:'btn-ad',fn:adContinue});
+  } else if(tries>0){
+    btns.push({label:T('retry'),cls:'btn-main',fn:()=>{hideOv();sizeCanvas();buildLevel(level);}});
+  } else {
     if(!adsRemoved) btns.push({label:T('watchAd'),cls:'btn-ad',fn:watchAd});
-    btns.push({label:T('retry'),cls:'btn-sec',fn:()=>{
-      if(levelFailCount>=5&&!adsRemoved){
-        showSimAd(()=>{tries=MAX_TRIES;levelFailCount=0;hideOv();sizeCanvas();buildLevel(level);});
-      } else {
-        tries=MAX_TRIES;hideOv();sizeCanvas();buildLevel(level);
-      }
-    }});
+    btns.push({label:T('retry'),cls:'btn-sec',fn:()=>{tries=MAX_TRIES;hideOv();sizeCanvas();buildLevel(level);}});
   }
 
   if(starsToday<30){
