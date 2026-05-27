@@ -870,7 +870,7 @@ function useSkipTicket(lv){
     if(totalStars>=100){totalStars-=100;skipTickets=Math.floor(totalStars/40);saveStars();updateStarUI();return true;}
     return false;
   }
-  if(skipTickets>0){skipTickets--;saveStars();return true;}
+  if(totalStars>=40){totalStars-=40;skipTickets=Math.floor(totalStars/40);saveStars();updateStarUI();return true;}
   return false;
 }
 
@@ -1689,15 +1689,14 @@ function onFail(timesUp){
   let btns=[];
 
   if(level===500 && totalStars>=100){
-    let skipLabel=lang==='tr'?'100⭐ ile Gec':'Skip with 100⭐';
-    btns.push({label:skipLabel,cls:'btn-ad',fn:()=>{
-      if(useSkipTicket(level)){hideOv();level++;sizeCanvas();buildLevel(level);}
-      else showToast(lang==='tr'?'Yeterli yildiz yok!':'Not enough stars!');
+    btns.push({label:lang==='tr'?'100⭐ ile Geç':'Skip with 100⭐',cls:'btn-ad',fn:()=>{
+      if(useSkipTicket(level)){levelFailCount=0;hideOv();level++;sizeCanvas();buildLevel(level);}
+      else showToast(lang==='tr'?'Yeterli yıldız yok!':'Not enough stars!');
     }});
-  } else if(level!==500 && skipTickets>0){
-    let skipLabel2=lang==='tr'?('Gecis Hakki Kullan ('+skipTickets+')'):'Use Skip ('+skipTickets+')';
-    btns.push({label:'🎫 '+skipLabel2,cls:'btn-ad',fn:()=>{
-      if(useSkipTicket(level)){hideOv();level++;sizeCanvas();buildLevel(level);}
+  } else if(level!==500 && totalStars>=40){
+    btns.push({label:'⭐ '+(lang==='tr'?'40 Yıldız ile Geç':'Skip with 40⭐'),cls:'btn-ad',fn:()=>{
+      if(useSkipTicket(level)){levelFailCount=0;hideOv();level++;sizeCanvas();buildLevel(level);}
+      else showToast(lang==='tr'?'Yeterli yıldız yok!':'Not enough stars!');
     }});
   }
 
@@ -2705,6 +2704,14 @@ function _renderStart(){
   });
   bc.appendChild(row1);
 
+  // Yildiz satin al butonu
+  let starShopBtn=document.createElement('button');
+  starShopBtn.className='btn';
+  starShopBtn.style='width:100%;margin-bottom:8px;font-size:12px;background:linear-gradient(135deg,#f7971e,#ffd200);color:#1a1a2e;font-weight:800';
+  starShopBtn.innerHTML='⭐ '+(lang==='tr'?'Yıldız Satın Al':'Buy Stars');
+  starShopBtn.onclick=()=>{sndClick();openStarShop();};
+  bc.appendChild(starShopBtn);
+
   let row2=document.createElement('div');
   row2.style='display:flex;gap:8px;margin-bottom:8px';
   let adBtn=document.createElement('button');
@@ -2791,6 +2798,50 @@ document.getElementById('btn-pause').onclick=()=>{if(!running)return;sndClick();
 document.getElementById('btn-restart').onclick=()=>{sndClick();
   if(!running)return;clearTimeout(failTimer);hideOv();hidePause();resetFailState();sizeCanvas();buildLevel(level);
 };
+
+function openStarShop(){
+  document.getElementById('ov-shop').classList.remove('show');
+  let overlay=document.createElement('div');
+  overlay.id='star-shop-overlay';
+  overlay.style='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;padding:16px';
+  const packages=[
+    {stars:100,price:'10 ₺',priceEn:'₺10'},
+    {stars:200,price:'18 ₺',priceEn:'₺18'},
+    {stars:400,price:'35 ₺',priceEn:'₺35'},
+    {stars:1000,price:'75 ₺',priceEn:'₺75',best:true},
+  ];
+  let pkgHtml=packages.map(p=>`
+    <div onclick="_buyStars(${p.stars})" style="background:${p.best?'linear-gradient(135deg,#f7971e,#ffd200)':'rgba(255,255,255,.07)'};border:1px solid ${p.best?'transparent':'rgba(255,255,255,.12)'};border-radius:14px;padding:14px;text-align:center;cursor:pointer;position:relative">
+      ${p.best?'<div style="position:absolute;top:-8px;right:10px;background:#e74c3c;color:#fff;font-size:9px;font-weight:900;padding:2px 7px;border-radius:8px">EN İYİ</div>':''}
+      <div style="font-size:28px;font-weight:900;color:${p.best?'#1a1a2e':'#ffd700'}">${p.stars} ⭐</div>
+      <div style="font-size:16px;font-weight:800;color:${p.best?'#1a1a2e':'#fff'};margin-top:4px">${lang==='tr'?p.price:p.priceEn}</div>
+    </div>`).join('');
+  overlay.innerHTML=`
+    <div style="width:100%;max-width:340px;background:#0f0c1a;border-radius:20px;overflow:hidden">
+      <div style="background:linear-gradient(135deg,#1a0533,#2d1b69);padding:20px;text-align:center">
+        <div style="font-size:32px">⭐</div>
+        <div style="color:#ffd700;font-size:18px;font-weight:900">${lang==='tr'?'Yıldız Satın Al':'Buy Stars'}</div>
+        <div style="color:rgba(255,255,255,.5);font-size:11px;margin-top:4px">${lang==='tr'?'Mevcut: '+totalStars+' ⭐':'Current: '+totalStars+' ⭐'}</div>
+      </div>
+      <div style="padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:10px">${pkgHtml}</div>
+      <div style="padding:0 16px 16px">
+        <div style="color:rgba(255,255,255,.3);font-size:10px;text-align:center;margin-bottom:10px">Google Play In-App Purchase</div>
+        <div onclick="document.getElementById('star-shop-overlay').remove();openShop();" style="background:rgba(255,255,255,.1);color:#fff;border-radius:12px;padding:12px;font-size:14px;font-weight:700;text-align:center;cursor:pointer">${lang==='tr'?'Geri':'Back'}</div>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+function _buyStars(amount){
+  // APK'da Google Play billing ile degistirilecek
+  document.getElementById('star-shop-overlay').remove();
+  showSimAd(()=>{
+    totalStars+=amount;
+    skipTickets=Math.floor(totalStars/40);
+    saveStars();updateStarUI();
+    showToast('+'+amount+' ⭐ '+(lang==='tr'?'yıldız eklendi!':'stars added!'));
+  });
+}
 
 function openShop(){
   document.getElementById('shop-ttl').textContent=T('shopTtl');
