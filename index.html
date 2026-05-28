@@ -3,7 +3,7 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>CUT!</title>
@@ -12,7 +12,7 @@
 /* System fonts only - no external dependency */
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
 html,body{width:100%;height:100%;overflow:hidden;position:fixed;font-family:'Trebuchet MS','Segoe UI',system-ui,sans-serif;color:#fff;user-select:none}
-body{display:flex;flex-direction:column;align-items:center;background:#06000f}
+body{display:flex;flex-direction:column;align-items:center;background:#06000f;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
 #bgcv{position:fixed;inset:0;z-index:0;pointer-events:none}
 #bar{position:relative;z-index:10;width:100%;max-width:700px;flex-shrink:0;
   display:none;/* hidden by default, shown in menus */
@@ -743,10 +743,12 @@ async function supaSignOut(){
 async function loginWithGoogle(){
   if(!supa) return;
   try{
+    const isNative=window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform();
+    const redirectTo=isNative?'capacitor://localhost':window.location.origin+window.location.pathname;
     await supa.auth.signInWithOAuth({
       provider:'google',
       options:{
-        redirectTo:window.location.origin+window.location.pathname,
+        redirectTo:redirectTo,
         queryParams:{prompt:'select_account'}
       }
     });
@@ -756,10 +758,12 @@ async function loginWithGoogle(){
 async function loginWithFacebook(){
   if(!supa) return;
   try{
+    const isNative=window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform();
+    const redirectTo=isNative?'capacitor://localhost':window.location.origin+window.location.pathname;
     await supa.auth.signInWithOAuth({
       provider:'facebook',
       options:{
-        redirectTo:window.location.origin+window.location.pathname,
+        redirectTo:redirectTo,
         scopes:'public_profile'
       }
     });
@@ -2914,29 +2918,40 @@ function openLevels(){
 
   let leg=document.createElement('div');
   leg.style.cssText='grid-column:1/-1;display:flex;gap:10px;flex-wrap:wrap;font-size:9px;color:rgba(255,255,255,.45);margin-bottom:5px;padding:0 2px;font-weight:800';
-  leg.innerHTML='<span>✓ Tamamlandı</span><span style="color:#ff9a3c">⚓ Yan/Alt anchor</span>';
+  leg.innerHTML='<span>✓ Tamamlandı</span><span style="color:rgba(255,255,255,.3)">🔒 Kilitli</span>';
   grid.appendChild(leg);
+
+  // En yüksek tamamlanan bölümü bul
+  let maxDone=0;
+  for(let i=1;i<=500;i++) if(completedLevels.has(i)&&i>maxDone) maxDone=i;
+  let unlocked=maxDone+1; // bir sonraki oynanabilir
 
   for(let i=1;i<=500;i++){
     let done=completedLevels.has(i);
+    let isUnlocked=done||(i<=unlocked);
     let lvType=getLevelType(i);
     let isSide=(lvType==='side_anchor'||lvType==='v_anchor'||lvType==='low_anchor');
     let el=document.createElement('div');
-    el.className='lvlcell'+(done?' done':'');
-    if(isSide&&!done) el.style.borderColor='rgba(255,154,60,.55)';
-    if(done&&isSide) el.style.borderColor='rgba(46,204,113,.6)';
-    if(done){
+    el.className='lvlcell'+(done?' done':isUnlocked?'':' locked');
+    if(!isUnlocked){
+      el.style.cssText='opacity:.35;cursor:default';
+      el.innerHTML='🔒';
+    } else if(done){
+      if(isSide) el.style.borderColor='rgba(46,204,113,.6)';
       el.innerHTML=isSide?'✓<span style="font-size:7px;display:block;opacity:.7">⚓</span>':'✓';
     } else {
+      if(isSide) el.style.borderColor='rgba(255,154,60,.55)';
       el.innerHTML=isSide?`${i}<span style="font-size:7px;display:block;color:#ff9a3c;opacity:.9">⚓</span>`:String(i);
     }
     el.title=isSide?(lang==='tr'?'Yan/Alt anchor bölümü':'Side/Bottom anchor level'):'';
-    el.onclick=()=>{
-      document.getElementById('ov-lvls').classList.remove('show');
-      document.getElementById('bar').classList.add('ingame');
-      stopIntroMusic();
-      hideOv();level=i;sizeCanvas();buildLevel(i);if(!running)startLoop();
-    };
+    if(isUnlocked){
+      el.onclick=()=>{
+        document.getElementById('ov-lvls').classList.remove('show');
+        document.getElementById('bar').classList.add('ingame');
+        stopIntroMusic();
+        hideOv();level=i;sizeCanvas();buildLevel(i);if(!running)startLoop();
+      };
+    }
     grid.appendChild(el);
   }
 
@@ -2945,17 +2960,26 @@ function openLevels(){
     div.style.cssText='grid-column:1/-1;text-align:center;font-size:11px;font-weight:900;color:#e74c3c;padding:8px 0 4px;border-top:1px solid rgba(255,50,50,.3);margin-top:4px';
     div.innerHTML='💀 HARDCORE';
     grid.appendChild(div);
+    let maxHC=0;
+    for(let i=501;i<=530;i++) if(completedHardcore.has(i)&&i>maxHC) maxHC=i;
+    let unlockedHC=maxHC>0?maxHC+1:501;
     for(let i=501;i<=530;i++){
       let done=completedHardcore.has(i);
+      let isUnlocked=done||(i<=unlockedHC);
       let el=document.createElement('div');
       el.className='lvlcell'+(done?' done':'');
       el.style.borderColor='rgba(231,76,60,.4)';
-      el.textContent=done?'✓':i;
-      el.onclick=()=>{
-        document.getElementById('ov-lvls').classList.remove('show');
-        document.getElementById('bar').classList.add('ingame');
-        hideOv();level=i;sizeCanvas();buildHardcoreLevel(i);if(!running)startLoop();
-      };
+      if(!isUnlocked){
+        el.style.cssText='opacity:.35;cursor:default';
+        el.innerHTML='🔒';
+      } else {
+        el.textContent=done?'✓':i;
+        el.onclick=()=>{
+          document.getElementById('ov-lvls').classList.remove('show');
+          document.getElementById('bar').classList.add('ingame');
+          hideOv();level=i;sizeCanvas();buildHardcoreLevel(i);if(!running)startLoop();
+        };
+      }
       grid.appendChild(el);
     }
   }
